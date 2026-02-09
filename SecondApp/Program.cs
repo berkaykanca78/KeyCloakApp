@@ -7,7 +7,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var keycloak = builder.Configuration.GetSection("Keycloak");
-var authority = keycloak["Authority"] ?? "http://localhost:8080/realms/KeyCloackApp";
+var authority = keycloak["Authority"] ?? "http://localhost:8080/realms/KeyCloakApp";
 var audience = keycloak["Audience"] ?? "backend-api";
 var requireHttps = keycloak.GetValue<bool>("RequireHttpsMetadata");
 

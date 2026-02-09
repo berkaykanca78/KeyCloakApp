@@ -35,7 +35,7 @@ Tarayıcıda açıp giriş yapın.
 ### 3.1 Yeni Realm Oluşturma
 
 1. Sol üstte **Keycloak** yazan yere tıklayın → **Create realm**.
-2. **Realm name:** `KeyCloackApp` (projedeki `Authority` ile aynı olmalı).
+2. **Realm name:** `KeyCloakApp` (projedeki `Authority` ile aynı olmalı).
 3. **Create** ile kaydedin.
 
 ### 3.2 Client (backend-api) Oluşturma
@@ -104,7 +104,7 @@ $body = @{
     password      = "testuser"
     grant_type    = "password"
 }
-Invoke-RestMethod -Uri "http://localhost:8080/realms/KeyCloackApp/protocol/openid-connect/token" -Method Post -Body $body -ContentType "application/x-www-form-urlencoded"
+Invoke-RestMethod -Uri "http://localhost:8080/realms/KeyCloakApp/protocol/openid-connect/token" -Method Post -Body $body -ContentType "application/x-www-form-urlencoded"
 ```
 
 Çıktıda `access_token` alanındaki uzun string **JWT**’nizdir. Bunu API isteklerinde kullanacaksınız.
@@ -112,7 +112,7 @@ Invoke-RestMethod -Uri "http://localhost:8080/realms/KeyCloackApp/protocol/openi
 ### Yöntem B: curl (Windows’ta Git Bash veya WSL)
 
 ```bash
-curl -X POST "http://localhost:8080/realms/KeyCloackApp/protocol/openid-connect/token" \
+curl -X POST "http://localhost:8080/realms/KeyCloakApp/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "client_id=backend-api" \
   -d "client_secret=BURAYA_CLIENT_SECRET" \
@@ -172,7 +172,7 @@ Aynı token ile hem FirstApp hem SecondApp’e istek atabilirsiniz; ortak giriş
 | Adım | Ne yaptık? |
 |------|------------|
 | 1 | `docker compose up -d` ile KeyCloak’ı ayağa kaldırdık. |
-| 2 | KeyCloak’ta `KeyCloackApp` realm’i ve `backend-api` client’ı oluşturduk. |
+| 2 | KeyCloak’ta `KeyCloakApp` realm’i ve `backend-api` client’ı oluşturduk. |
 | 3 | Client’a audience mapper ekleyip `audience = backend-api` yaptık. |
 | 4 | Test kullanıcısı ve şifre ile token aldık. |
 | 5 | Bu JWT’yi `Authorization: Bearer <token>` ile FirstApp ve SecondApp’e gönderdik. |
@@ -183,8 +183,8 @@ Her iki API de aynı **Authority** ve **Audience** ile JWT doğruladığı için
 
 ## 7. Sorun Giderme
 
-- **401 Unauthorized:** Token süresi dolmuş olabilir; yeni token alın. Audience’ın `backend-api` ve Issuer’ın `http://localhost:8080/realms/KeyCloackApp` olduğundan emin olun.
+- **401 Unauthorized:** Token süresi dolmuş olabilir; yeni token alın. Audience’ın `backend-api` ve Issuer’ın `http://localhost:8080/realms/KeyCloakApp` olduğundan emin olun.
 - **KeyCloak açılmıyor:** `docker compose ps` ile container’ın “Up” olduğunu kontrol edin; gerekirse `docker compose logs keycloak` ile loglara bakın.
-- **API “Authority” bulamıyor:** KeyCloak’ın 8080’de çalıştığından ve realm adının `KeyCloackApp` olduğundan emin olun. API’leri Docker dışında çalıştırıyorsanız Authority olarak `http://localhost:8080/realms/KeyCloackApp` kullanın (zaten `appsettings.json`’da bu var).
+- **API “Authority” bulamıyor:** KeyCloak’ın 8080’de çalıştığından ve realm adının `KeyCloakApp` olduğundan emin olun. API’leri Docker dışında çalıştırıyorsanız Authority olarak `http://localhost:8080/realms/KeyCloakApp` kullanın (zaten `appsettings.json`’da bu var).
 
 İsterseniz bir sonraki adımda Postman koleksiyonu veya basit bir test script’i de ekleyebiliriz.
