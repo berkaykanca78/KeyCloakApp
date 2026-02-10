@@ -1,6 +1,6 @@
 # KeyCloak ile Ortak JWT Giriş Rehberi
 
-Bu projede **AuthApi** (giriş API’si), **FirstApi** ve **SecondApi** birlikte kullanılıyor. Kullanıcı **AuthApi** üzerinden giriş yapar, Keycloak’tan alınan **access_token** döner; bu token **FirstApi** ve **SecondApi** isteklerinde **Authorization** header’ında taşınır. Tek token ile her iki API’ye de erişilir.
+Bu projede **AuthApi** (giriş API’si), **OrderApi** ve **InventoryApi** birlikte kullanılıyor. Kullanıcı **AuthApi** üzerinden giriş yapar, Keycloak’tan alınan **access_token** döner; bu token **OrderApi** ve **InventoryApi** isteklerinde **Authorization** header’ında taşınır. Tek token ile her iki API’ye de erişilir.
 
 ---
 
@@ -58,7 +58,7 @@ Tarayıcıda açıp giriş yapın.
 ### 3.3 Client’e Audience (Mapper) Eklemek
 
 **Neden gerekli?**  
-JWT token içinde **aud** (audience) adında bir alan vardır. FirstApi ve SecondApi, `appsettings.json` içinde `"Audience": "backend-api"` ile çalışıyor; yani gelen token’da **aud = backend-api** olmalı ki API isteği kabul etsin. KeyCloak varsayılan olarak access token’a her zaman bu değeri koymaz. Bu yüzden “token’a audience olarak backend-api ekle” kuralını (mapper) biz tanımlıyoruz.
+JWT token içinde **aud** (audience) adında bir alan vardır. OrderApi ve InventoryApi, `appsettings.json` içinde `"Audience": "backend-api"` ile çalışıyor; yani gelen token’da **aud = backend-api** olmalı ki API isteği kabul etsin. KeyCloak varsayılan olarak access token’a her zaman bu değeri koymaz. Bu yüzden “token’a audience olarak backend-api ekle” kuralını (mapper) biz tanımlıyoruz.
 
 **Ne yapıyoruz?**  
 KeyCloak’a diyoruz: “Bu client için ürettiğin token’ların içine **aud** alanında **backend-api** yaz.” Böylece API’lerimiz token’ı doğrulayabiliyor.
@@ -128,18 +128,17 @@ Bundan sonra giriş yapan kullanıcının realm rolleri access token’da `role`
 
 | Kullanıcı | Şifre (örnek) | Rol  | Erişebildiği endpoint’ler                          |
 |-----------|----------------|------|---------------------------------------------------|
-| admin     | admin          | Admin | Tüm yetkili (GET /WeatherForecast, GET /WeatherForecast/user) |
-| user      | user           | User  | Sadece GET /WeatherForecast/user                  |
+| admin     | admin          | Admin | Tüm yetkili (OrderApi: GET /orders, POST /orders; InventoryApi: GET /inventory, PUT /inventory/{id}) |
+| user      | user           | User  | OrderApi: GET /orders/my, POST /orders; InventoryApi: GET /inventory/{id} |
 
-İsterseniz mevcut **testuser** kullanıcısına da **User** rolü atayabilirsiniz.
-
-### 3.6 Eski test kullanıcısı (isteğe bağlı)
+### 3.6 Yeni kullanıcı ekleme (isteğe bağlı)
 
 1. Sol menü **Users** → **Create user**.
-2. **Username:** `testuser` (veya istediğiniz).
+2. **Username:** `user` (veya istediğiniz).
 3. **Email** ve **First/Last name** isteğe bağlı.
 4. **Create**.
-5. **Credentials** sekmesi → **Set password** (örn. `testuser`) → **Save** (Temporary: OFF yapabilirsiniz).
+5. **Credentials** sekmesi → **Set password** (örn. `user`) → **Save** (Temporary: OFF yapabilirsiniz).
+6. **Role mapping** ile **User** rolünü atayın.
 
 ---
 
@@ -155,8 +154,8 @@ PowerShell’de (tek satırda veya satır sonunda `\` ile bölerek):
 $body = @{
     client_id     = "backend-api"
     client_secret = "8UnOB25jLwfU4fQpIgQjgt0xIVcXBMqo"
-    username      = "testuser"
-    password      = "testuser"
+    username      = "user"
+    password      = "user"
     grant_type    = "password"
 }
 Invoke-RestMethod -Uri "http://localhost:8080/realms/KeyCloakApp/protocol/openid-connect/token" -Method Post -Body $body -ContentType "application/x-www-form-urlencoded"
@@ -171,8 +170,8 @@ curl -X POST "http://localhost:8080/realms/KeyCloakApp/protocol/openid-connect/t
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "client_id=backend-api" \
   -d "client_secret=BURAYA_CLIENT_SECRET" \
-  -d "username=testuser" \
-  -d "password=testuser" \
+  -d "username=user" \
+  -d "password=user" \
   -d "grant_type=password"
 ```
 
@@ -180,14 +179,14 @@ Yanıttaki `access_token` değerini kopyalayın.
 
 ### Yöntem C: AuthApi ile login (önerilen)
 
-**AuthApi**, Keycloak’a sizin yerinize istek atıp **access_token** döndüren ayrı bir API’dir. Tüm girişler bu API üzerinden yapılır; dönen token FirstApi ve SecondApi’te **Authorization: Bearer &lt;token&gt;** ile kullanılır.
+**AuthApi**, Keycloak’a sizin yerinize istek atıp **access_token** döndüren ayrı bir API’dir. Tüm girişler bu API üzerinden yapılır; dönen token OrderApi ve InventoryApi’te **Authorization: Bearer &lt;token&gt;** ile kullanılır.
 
 1. **AuthApi**’yi çalıştırın (bkz. 5.1).
 2. **POST** isteği atın:
    - **URL:** `http://localhost:5200/api/auth/login` (veya `https://localhost:7225/api/auth/login`)
-   - **Body (JSON):** `{ "username": "testuser", "password": "testuser" }`
+   - **Body (JSON):** `{ "username": "user", "password": "user" }`
    - **Content-Type:** `application/json`
-3. Yanıtta `access_token` ve isteğe bağlı `refresh_token` gelir. Bu **access_token**’ı FirstApi ve SecondApi isteklerinde **Authorization** header’ında kullanın.
+3. Yanıtta `access_token` ve isteğe bağlı `refresh_token` gelir. Bu **access_token**’ı OrderApi ve InventoryApi isteklerinde **Authorization** header’ında kullanın.
 
 Refresh token ile yeni access token almak için: **POST** `http://localhost:5200/api/auth/refresh` — Body: `{ "refreshToken": "BURAYA_REFRESH_TOKEN" }`.
 
@@ -197,32 +196,40 @@ AuthApi ayarları (`AuthApi/appsettings.json`): **Keycloak:Authority**, **Keyclo
 
 ## 5. API’leri Çalıştırma ve Token ile Çağırma
 
-### 5.1 AuthApi, FirstApi ve SecondApi’i Çalıştırma
+### 5.1 AuthApi, OrderApi ve InventoryApi’i Çalıştırma
 
 - Visual Studio’dan projeleri ayrı ayrı çalıştırabilirsiniz (F5 veya “Run”).
 - Veya terminalde:
   - **AuthApi:** `AuthApi` klasöründe `dotnet run` → `http://localhost:5200` / `https://localhost:7225`
-  - **FirstApi:** `FirstApi` klasöründe `dotnet run` → `http://localhost:5198` / `https://localhost:7223`
-  - **SecondApi:** `SecondApi` klasöründe `dotnet run` → `http://localhost:5131` / `https://localhost:7067`
+  - **OrderApi:** `OrderApi` klasöründe `dotnet run` → `http://localhost:5198` / `https://localhost:7223`
+  - **InventoryApi:** `InventoryApi` klasöründe `dotnet run` → `http://localhost:5131` / `https://localhost:7067`
 
-**Akış:** Önce **AuthApi**’de login olun → dönen **access_token**’ı alın → FirstApi / SecondApi isteklerinde **Authorization: Bearer &lt;access_token&gt;** header’ı ile gönderin.
+**Akış:** Önce **AuthApi**’de login olun → dönen **access_token**’ı alın → OrderApi / InventoryApi isteklerinde **Authorization: Bearer &lt;access_token&gt;** header’ı ile gönderin.
 
 ### 5.2 Token Gerektirmeyen Endpoint (test)
 
-- FirstApi: `GET https://localhost:PORT/WeatherForecast/public`
-- SecondApi: `GET https://localhost:PORT/WeatherForecast/public`
+- OrderApi: `GET https://localhost:5198/orders/public`
+- InventoryApi: `GET https://localhost:5131/inventory/public`
 
 Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 
 ### 5.3 Token ve Rol Gerektiren Endpoint’ler
 
+**OrderApi (Sipariş):**
+
 | Endpoint | İzin verilen roller | Açıklama |
 |----------|----------------------|----------|
-| `GET …/WeatherForecast` | **Admin** | Sadece Admin rolü erişir. |
-| `GET …/WeatherForecast/user` | **Admin, User** | Admin ve User rolleri erişir (User için ayrı metod). |
+| `GET …/orders` | **Admin** | Tüm siparişler. |
+| `GET …/orders/my` | **Admin, User** | Giriş yapan kullanıcının siparişleri. |
+| `POST …/orders` | **Admin, User** | Yeni sipariş oluştur. |
 
-- FirstApi: `GET https://localhost:PORT/WeatherForecast` (Admin), `GET https://localhost:PORT/WeatherForecast/user` (Admin veya User)
-- SecondApi: aynı yapı.
+**InventoryApi (Stok):**
+
+| Endpoint | İzin verilen roller | Açıklama |
+|----------|----------------------|----------|
+| `GET …/inventory` | **Admin** | Tüm stok listesi. |
+| `GET …/inventory/{id}` | **Admin, User** | Tek ürün stok bilgisi. |
+| `PUT …/inventory/{id}` | **Admin** | Stok miktarı güncelle. |
 
 Bu isteklerde **Authorization** header’ı gerekir. Token’ı **AuthApi**’nin `/api/auth/login` endpoint’inden alın (örn. `admin`/`admin` veya `user`/`user`); aynı token’ı burada kullanın.
 
@@ -236,10 +243,10 @@ PowerShell örneği (PORT’u kendi değerinizle değiştirin):
 ```powershell
 $token = "BURAYA_ACCESS_TOKEN"
 $headers = @{ Authorization = "Bearer $token" }
-Invoke-RestMethod -Uri "https://localhost:7XXX/WeatherForecast" -Headers $headers
+Invoke-RestMethod -Uri "https://localhost:5198/orders" -Headers $headers
 ```
 
-Aynı token ile hem FirstApi hem SecondApi’e istek atabilirsiniz; ortak giriş bu şekilde çalışır.
+Aynı token ile hem OrderApi hem InventoryApi’e istek atabilirsiniz; ortak giriş bu şekilde çalışır.
 
 ---
 
@@ -251,9 +258,9 @@ Aynı token ile hem FirstApi hem SecondApi’e istek atabilirsiniz; ortak giriş
 | 2 | KeyCloak’ta `KeyCloakApp` realm’i ve `backend-api` client’ı oluşturduk. |
 | 3 | Client’a audience mapper ekleyip `audience = backend-api` yaptık. |
 | 4 | **AuthApi** ile login olup token aldık (veya doğrudan Keycloak token endpoint’i kullandık). |
-| 5 | Dönen JWT’yi `Authorization: Bearer <token>` ile FirstApi ve SecondApi’e gönderdik. |
+| 5 | Dönen JWT’yi `Authorization: Bearer <token>` ile OrderApi ve InventoryApi’e gönderdik. |
 
-**AuthApi** tüm girişleri toplar; Keycloak’tan alınan access_token FirstApi ve SecondApi’te aynı şekilde kullanılır. Her iki API de aynı **Authority** ve **Audience** ile JWT doğruladığı için tek token yeterli.
+**AuthApi** tüm girişleri toplar; Keycloak’tan alınan access_token OrderApi ve InventoryApi’te aynı şekilde kullanılır. Her iki API de aynı **Authority** ve **Audience** ile JWT doğruladığı için tek token yeterli.
 
 ---
 

@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthApi.Controllers;
@@ -18,7 +20,7 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Keycloak ile giriş: kullanıcı adı ve şifre gönderin, access_token alın.
-    /// Bu token'ı FirstApi ve SecondApi isteklerinde Authorization: Bearer &lt;access_token&gt; olarak kullanın.
+    /// Bu token'ı OrderApi ve InventoryApi isteklerinde Authorization: Bearer &lt;access_token&gt; olarak kullanın.
     /// </summary>
     [HttpPost("login")]
     [ProducesResponseType(typeof(KeycloakTokenResponse), StatusCodes.Status200OK)]
@@ -88,6 +90,27 @@ public class AuthController : ControllerBase
 
         var tokenResponse = System.Text.Json.JsonSerializer.Deserialize<KeycloakTokenResponse>(json);
         return Ok(tokenResponse);
+    }
+
+    /// <summary>
+    /// Giriş yapmış kullanıcının bilgilerini döner. Authorization: Bearer &lt;access_token&gt; gerekir.
+    /// </summary>
+    [Authorize]
+    [HttpGet("profile")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public IActionResult Profile()
+    {
+        var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value;
+        var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        var sub = User.FindFirst("sub")?.Value;
+        return Ok(new
+        {
+            username,
+            sub,
+            roles,
+            claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
+        });
     }
 }
 

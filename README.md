@@ -33,7 +33,7 @@
 
 ## 📌 Bu Proje
 
-Bu depo, Keycloak ile entegre **AuthApi**, **FirstApi** ve **SecondApi** örnek uygulamalarını içerir. Keycloak kurulumu ve kullanımı için `KEYCLOAK_KURULUM.md` dosyasına bakabilirsiniz.
+Bu depo, Keycloak ile entegre **AuthApi**, **OrderApi** ve **InventoryApi** örnek uygulamalarını içerir. Keycloak kurulumu ve kullanımı için `KEYCLOAK_KURULUM.md` dosyasına bakabilirsiniz.
 
 ---
 
@@ -50,20 +50,16 @@ Projede iki **realm rolü** tanımlıdır:
 
 | Kullanıcı adı | Örnek şifre | Atanmış rol | Ne yapabilir? |
 |---------------|-------------|-------------|-------------------------------|
-| `admin`       | `admin`     | Admin       | Tüm korumalı API’lere erişir. |
-| `user`        | `user`      | User        | Sadece `/WeatherForecast/user` endpoint’ine erişir. |
+| `admin`       | `admin`     | Admin       | Tüm korumalı API’lere erişir (sipariş/stok tam yetki). |
+| `user`        | `user`      | User        | Kendi siparişleri, sipariş oluşturma, stok sorgulama. |
 
 ---
 
 ## 🔗 Endpoint’ler ve Erişim
 
-Her iki API’de (FirstApi, SecondApi) aynı yapı kullanılır:
+**OrderApi (Sipariş):** `GET /orders/public` (herkes), `GET /orders` (Admin), `GET /orders/my` ve `POST /orders` (Admin veya User).
 
-| Endpoint | Kim erişir? | Açıklama |
-|----------|--------------|----------|
-| `GET /WeatherForecast/public` | Herkes (token gerekmez) | Test için herkese açık. |
-| `GET /WeatherForecast` | **Sadece Admin** | Hava tahmini listesi. |
-| `GET /WeatherForecast/user` | **Admin veya User** | Giriş yapan kullanıcı bilgisi döner (`user`, `time`). |
+**InventoryApi (Stok):** `GET /inventory/public` (herkes), `GET /inventory` ve `PUT /inventory/{id}` (Admin), `GET /inventory/{id}` (Admin veya User).
 
 Giriş **AuthApi** üzerinden yapılır; dönen **access_token** ile isteklerde `Authorization: Bearer <token>` kullanılır. User bilgisi, token’daki `preferred_username` claim’inden okunur; yanıtta hangi kullanıcıyla giriş yapıldıysa o kullanıcı adı döner.
 

@@ -8,158 +8,199 @@
   },
   "item": [
     {
-      "name": "AuthApi - Login / Admin",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"username\": \"admin\",\r\n  \"password\": \"admin\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
+      "name": "AuthApi",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.access_token) { pm.collectionVariables.set('Bearer_Token', json.access_token); }",
+                  "if (json.refresh_token) { pm.collectionVariables.set('Refresh_Token', json.refresh_token); }"
+                ],
+                "type": "text/javascript"
+              }
             }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:5200/api/auth/login",
-          "protocol": "http",
-          "host": [
-            "localhost"
           ],
-          "port": "5200",
-          "path": [
-            "api",
-            "auth",
-            "login"
-          ]
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "http://localhost:5200/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "5200", "path": ["api", "auth", "login"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Login (User)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.access_token) { pm.collectionVariables.set('Bearer_Token', json.access_token); }",
+                  "if (json.refresh_token) { pm.collectionVariables.set('Refresh_Token', json.refresh_token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"user\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "http://localhost:5200/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "5200", "path": ["api", "auth", "login"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Profile (Bearer Token)",
+          "request": {
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "http://localhost:5200/api/auth/profile", "protocol": "http", "host": ["localhost"], "port": "5200", "path": ["api", "auth", "profile"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{Refresh_Token}}\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "http://localhost:5200/api/auth/refresh", "protocol": "http", "host": ["localhost"], "port": "5200", "path": ["api", "auth", "refresh"]}
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     },
     {
-      "name": "AuthApi - Login / User",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"username\": \"user\",\r\n  \"password\": \"user\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+      "name": "OrderApi",
+      "item": [
+        {
+          "name": "Orders - Public",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "http://localhost:5198/orders/public", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders", "public"]}
+          },
+          "response": []
         },
-        "url": {
-          "raw": "http://localhost:5200/api/auth/login",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "5200",
-          "path": [
-            "api",
-            "auth",
-            "login"
-          ]
+        {
+          "name": "Orders - List (Admin)",
+          "request": {
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "http://localhost:5198/orders", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Orders - My (User/Admin)",
+          "request": {
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "http://localhost:5198/orders/my", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders", "my"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Orders - Create",
+          "request": {
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Örnek Ürün\",\n  \"quantity\": 2,\n  \"customerName\": \"Müşteri Adı\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "http://localhost:5198/orders", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders"]}
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     },
     {
-      "name": "AuthApi - Login / TestUser",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"username\": \"testuser\",\r\n  \"password\": \"testuser\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+      "name": "InventoryApi",
+      "item": [
+        {
+          "name": "Inventory - Public",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "http://localhost:5131/inventory/public", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory", "public"]}
+          },
+          "response": []
         },
-        "url": {
-          "raw": "http://localhost:5200/api/auth/login",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "5200",
-          "path": [
-            "api",
-            "auth",
-            "login"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "AuthApi - Refresh Token",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"refreshToken\": \"{{Refresh_Token}}\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+        {
+          "name": "Inventory - List (Admin)",
+          "request": {
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "http://localhost:5131/inventory", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory"]}
+          },
+          "response": []
         },
-        "url": {
-          "raw": "http://localhost:5200/api/auth/refresh",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "5200",
-          "path": [
-            "api",
-            "auth",
-            "refresh"
-          ]
+        {
+          "name": "Inventory - Get by Id (User/Admin)",
+          "request": {
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "http://localhost:5131/inventory/1", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory", "1"]}
+          },
+          "response": []
+        },
+        {
+          "name": "Inventory - Update Quantity (Admin)",
+          "request": {
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 25\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {"raw": "http://localhost:5131/inventory/1", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory", "1"]}
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
     }
   ],
   "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    },
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    }
+    {"listen": "prerequest", "script": {"type": "text/javascript", "exec": [""]}},
+    {"listen": "test", "script": {"type": "text/javascript", "exec": [""]}}
   ],
   "variable": [
-    {
-      "key": "Bearer_Token",
-      "value": ""
-    },
-    {
-      "key": "Refresh_Token",
-      "value": ""
-    }
+    {"key": "Bearer_Token", "value": ""},
+    {"key": "Refresh_Token", "value": ""}
   ]
 }
