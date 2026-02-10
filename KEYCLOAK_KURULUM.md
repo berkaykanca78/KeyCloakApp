@@ -78,7 +78,62 @@ KeyCloak’a diyoruz: “Bu client için ürettiğin token’ların içine **aud
 
 Bu işlemden sonra bu client ile alacağınız token’ların içinde `"aud": "backend-api"` olur ve her iki API de token’ı kabul eder.
 
-### 3.4 Test Kullanıcısı Oluşturma
+### 3.4 Realm Rolleri (Admin, User) ve JWT’de Rol Claim’i
+
+API’lerde **Admin** ve **User** rolleri kullanılıyor. Admin tüm yetkili endpoint’lere, User sadece kendine ayrılan endpoint’lere erişir. Rollerin JWT access token içinde **role** claim’i olarak gelmesi gerekir.
+
+#### 3.4.1 Realm rolleri oluşturma
+
+1. Sol menü **Realm roles** → **Create role**.
+2. **Role name:** `Admin` → **Save**.
+3. Tekrar **Create role** → **Role name:** `User` → **Save**.
+
+#### 3.4.2 backend-api client’ında rol claim mapper’ı
+
+Token’da realm rolleri varsayılan olarak sadece `realm_access.roles` içinde gelir. ASP.NET Core’un `[Authorize(Roles = "Admin")]` kullanabilmesi için rollerin **role** adlı claim’de gelmesi gerekir.
+
+1. **Clients** → **backend-api** → **Client scopes** sekmesi.
+2. **Dedicated** (veya backend-api-dedicated) scope satırına tıklayın (scope adına tıklayın).
+3. **Add mapper** → **By configuration** → **User Realm Role** seçin.
+4. Ayarlar:
+   - **Name:** `realm-roles`
+   - **Token Claim Name:** `role`
+   - **Multivalued:** ON (her rol ayrı claim olur)
+   - **Add to ID token:** İsterseniz ON
+   - **Add to access token:** **ON** (zorunlu)
+5. **Save**.
+
+Bundan sonra giriş yapan kullanıcının realm rolleri access token’da `role` claim’i olarak yer alır (örn. `"role": ["Admin"]`).
+
+### 3.5 Admin ve User kullanıcıları oluşturma
+
+#### Admin kullanıcısı
+
+1. Sol menü **Users** → **Create user**.
+2. **Username:** `admin` (veya istediğiniz).
+3. **Email** / **First name** / **Last name** isteğe bağlı.
+4. **Create**.
+5. **Credentials** sekmesi → **Set password** (örn. `admin`) → **Save** (Temporary: OFF).
+6. **Role mapping** sekmesi → **Assign role** → **Filter by realm roles** → **Admin**’i seçin → **Assign**.
+
+#### User kullanıcısı
+
+1. **Users** → **Create user**.
+2. **Username:** `user`.
+3. **Create**.
+4. **Credentials** → **Set password** (örn. `user`) → **Save** (Temporary: OFF).
+5. **Role mapping** → **Assign role** → **User** rolünü seçin → **Assign**.
+
+**Özet:**
+
+| Kullanıcı | Şifre (örnek) | Rol  | Erişebildiği endpoint’ler                          |
+|-----------|----------------|------|---------------------------------------------------|
+| admin     | admin          | Admin | Tüm yetkili (GET /WeatherForecast, GET /WeatherForecast/user) |
+| user      | user           | User  | Sadece GET /WeatherForecast/user                  |
+
+İsterseniz mevcut **testuser** kullanıcısına da **User** rolü atayabilirsiniz.
+
+### 3.6 Eski test kullanıcısı (isteğe bağlı)
 
 1. Sol menü **Users** → **Create user**.
 2. **Username:** `testuser` (veya istediğiniz).
@@ -159,12 +214,17 @@ AuthApi ayarları (`AuthApi/appsettings.json`): **Keycloak:Authority**, **Keyclo
 
 Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 
-### 5.3 Token Gerektiren Endpoint’ler
+### 5.3 Token ve Rol Gerektiren Endpoint’ler
 
-- FirstApp: `GET https://localhost:PORT/WeatherForecast`
-- SecondApp: `GET https://localhost:PORT/WeatherForecast`
+| Endpoint | İzin verilen roller | Açıklama |
+|----------|----------------------|----------|
+| `GET …/WeatherForecast` | **Admin** | Sadece Admin rolü erişir. |
+| `GET …/WeatherForecast/user` | **Admin, User** | Admin ve User rolleri erişir (User için ayrı metod). |
 
-Bu isteklerde **Authorization** header’ı gerekir. Token’ı **AuthApi**’nin `/api/auth/login` endpoint’inden alın; aynı token’ı burada kullanın.
+- FirstApp: `GET https://localhost:PORT/WeatherForecast` (Admin), `GET https://localhost:PORT/WeatherForecast/user` (Admin veya User)
+- SecondApp: aynı yapı.
+
+Bu isteklerde **Authorization** header’ı gerekir. Token’ı **AuthApi**’nin `/api/auth/login` endpoint’inden alın (örn. `admin`/`admin` veya `user`/`user`); aynı token’ı burada kullanın.
 
 - **Header adı:** `Authorization`
 - **Değer:** `Bearer BURAYA_ACCESS_TOKEN_YAPIŞTIRIN` (access_token, AuthApi login yanıtındaki `access_token` alanı)

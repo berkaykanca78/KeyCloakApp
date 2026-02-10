@@ -16,8 +16,8 @@ namespace FirstApp.Controllers
         [HttpGet("public")]
         public IActionResult GetPublic() => Ok(new { Message = "FirstApp - Herkese açık endpoint.", Time = DateTime.UtcNow });
 
-        /// <summary>KeyCloak JWT token gerekir.</summary>
-        [Authorize]
+        /// <summary>Sadece Admin rolü erişebilir.</summary>
+        [Authorize(Roles = "Admin")]
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {
@@ -28,6 +28,15 @@ namespace FirstApp.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        /// <summary>Admin veya User rolü erişebilir (User için ayrı metod).</summary>
+        [Authorize(Roles = "Admin,User")]
+        [HttpGet("user")]
+        public IActionResult GetUser()
+        {
+            var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value;
+            return Ok(new { Message = "FirstApp - User/Admin endpoint.", User = username, Time = DateTime.UtcNow });
         }
     }
 }

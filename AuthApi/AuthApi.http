@@ -1,4 +1,23 @@
-### AuthApi - Login (Keycloak'tan access_token alır)
+### AuthApi - (Admin) - Login (Keycloak'tan access_token alır)
+POST http://localhost:5200/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+### AuthApi - (User) - Login (Keycloak'tan access_token alır)
+POST http://localhost:5200/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "user"
+}
+
+
+### AuthApi - (TestUser) -Login (Keycloak'tan access_token alır)
 POST http://localhost:5200/api/auth/login
 Content-Type: application/json
 
@@ -6,6 +25,7 @@ Content-Type: application/json
   "username": "testuser",
   "password": "testuser"
 }
+
 
 ### AuthApi - Refresh (yeni access_token alır)
 # Önce login yapıp refresh_token'ı kopyalayın, aşağıya yapıştırın.
