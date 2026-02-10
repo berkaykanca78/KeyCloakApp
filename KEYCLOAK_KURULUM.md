@@ -94,12 +94,12 @@ Bu işlemden sonra bu client ile alacağınız token’ların içinde `"aud": "b
 
 PowerShell’de (tek satırda veya satır sonunda `\` ile bölerek):
 
-/// BURAYA_CLIENT_SECRET_YAPIŞTIRIN -> kznXHoEkkbfzCOJe3RzupRCDkSXMD0E1
+/// BURAYA_CLIENT_SECRET_YAPIŞTIRIN -> 8UnOB25jLwfU4fQpIgQjgt0xIVcXBMqo
 
 ```powershell
 $body = @{
     client_id     = "backend-api"
-    client_secret = "kznXHoEkkbfzCOJe3RzupRCDkSXMD0E1"
+    client_secret = "8UnOB25jLwfU4fQpIgQjgt0xIVcXBMqo"
     username      = "testuser"
     password      = "testuser"
     grant_type    = "password"
