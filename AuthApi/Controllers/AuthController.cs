@@ -18,7 +18,7 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Keycloak ile giriş: kullanıcı adı ve şifre gönderin, access_token alın.
-    /// Bu token'ı FirstApp ve SecondApp isteklerinde Authorization: Bearer &lt;access_token&gt; olarak kullanın.
+    /// Bu token'ı FirstApi ve SecondApi isteklerinde Authorization: Bearer &lt;access_token&gt; olarak kullanın.
     /// </summary>
     [HttpPost("login")]
     [ProducesResponseType(typeof(KeycloakTokenResponse), StatusCodes.Status200OK)]

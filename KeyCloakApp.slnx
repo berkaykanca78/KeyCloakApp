@@ -1,5 +1,5 @@
 <Solution>
-  <Project Path="FirstApp/FirstApp.csproj" />
-  <Project Path="SecondApp/SecondApp.csproj" />
+  <Project Path="FirstApi/FirstApi.csproj" />
+  <Project Path="SecondApi/SecondApi.csproj" />
   <Project Path="AuthApi/AuthApi.csproj" />
 </Solution>

@@ -1,4 +1,4 @@
-namespace SecondApp
+namespace FirstApi
 {
     public class WeatherForecast
     {

@@ -33,7 +33,7 @@
 
 ## 📌 Bu Proje
 
-Bu depo, Keycloak ile entegre **AuthApi**, **FirstApp** ve **SecondApp** örnek uygulamalarını içerir. Keycloak kurulumu ve kullanımı için `KEYCLOAK_KURULUM.md` dosyasına bakabilirsiniz.
+Bu depo, Keycloak ile entegre **AuthApi**, **FirstApi** ve **SecondApi** örnek uygulamalarını içerir. Keycloak kurulumu ve kullanımı için `KEYCLOAK_KURULUM.md` dosyasına bakabilirsiniz.
 
 ---
 
@@ -57,7 +57,7 @@ Projede iki **realm rolü** tanımlıdır:
 
 ## 🔗 Endpoint’ler ve Erişim
 
-Her iki API’de (FirstApp, SecondApp) aynı yapı kullanılır:
+Her iki API’de (FirstApi, SecondApi) aynı yapı kullanılır:
 
 | Endpoint | Kim erişir? | Açıklama |
 |----------|--------------|----------|

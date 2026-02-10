@@ -1,6 +1,6 @@
 # KeyCloak ile Ortak JWT Giriş Rehberi
 
-Bu projede **AuthApi** (giriş API’si), **FirstApp** ve **SecondApp** birlikte kullanılıyor. Kullanıcı **AuthApi** üzerinden giriş yapar, Keycloak’tan alınan **access_token** döner; bu token **FirstApp** ve **SecondApp** isteklerinde **Authorization** header’ında taşınır. Tek token ile her iki API’ye de erişilir.
+Bu projede **AuthApi** (giriş API’si), **FirstApi** ve **SecondApi** birlikte kullanılıyor. Kullanıcı **AuthApi** üzerinden giriş yapar, Keycloak’tan alınan **access_token** döner; bu token **FirstApi** ve **SecondApi** isteklerinde **Authorization** header’ında taşınır. Tek token ile her iki API’ye de erişilir.
 
 ---
 
@@ -58,7 +58,7 @@ Tarayıcıda açıp giriş yapın.
 ### 3.3 Client’e Audience (Mapper) Eklemek
 
 **Neden gerekli?**  
-JWT token içinde **aud** (audience) adında bir alan vardır. FirstApp ve SecondApp, `appsettings.json` içinde `"Audience": "backend-api"` ile çalışıyor; yani gelen token’da **aud = backend-api** olmalı ki API isteği kabul etsin. KeyCloak varsayılan olarak access token’a her zaman bu değeri koymaz. Bu yüzden “token’a audience olarak backend-api ekle” kuralını (mapper) biz tanımlıyoruz.
+JWT token içinde **aud** (audience) adında bir alan vardır. FirstApi ve SecondApi, `appsettings.json` içinde `"Audience": "backend-api"` ile çalışıyor; yani gelen token’da **aud = backend-api** olmalı ki API isteği kabul etsin. KeyCloak varsayılan olarak access token’a her zaman bu değeri koymaz. Bu yüzden “token’a audience olarak backend-api ekle” kuralını (mapper) biz tanımlıyoruz.
 
 **Ne yapıyoruz?**  
 KeyCloak’a diyoruz: “Bu client için ürettiğin token’ların içine **aud** alanında **backend-api** yaz.” Böylece API’lerimiz token’ı doğrulayabiliyor.
@@ -180,14 +180,14 @@ Yanıttaki `access_token` değerini kopyalayın.
 
 ### Yöntem C: AuthApi ile login (önerilen)
 
-**AuthApi**, Keycloak’a sizin yerinize istek atıp **access_token** döndüren ayrı bir API’dir. Tüm girişler bu API üzerinden yapılır; dönen token FirstApp ve SecondApp’te **Authorization: Bearer &lt;token&gt;** ile kullanılır.
+**AuthApi**, Keycloak’a sizin yerinize istek atıp **access_token** döndüren ayrı bir API’dir. Tüm girişler bu API üzerinden yapılır; dönen token FirstApi ve SecondApi’te **Authorization: Bearer &lt;token&gt;** ile kullanılır.
 
 1. **AuthApi**’yi çalıştırın (bkz. 5.1).
 2. **POST** isteği atın:
    - **URL:** `http://localhost:5200/api/auth/login` (veya `https://localhost:7225/api/auth/login`)
    - **Body (JSON):** `{ "username": "testuser", "password": "testuser" }`
    - **Content-Type:** `application/json`
-3. Yanıtta `access_token` ve isteğe bağlı `refresh_token` gelir. Bu **access_token**’ı FirstApp ve SecondApp isteklerinde **Authorization** header’ında kullanın.
+3. Yanıtta `access_token` ve isteğe bağlı `refresh_token` gelir. Bu **access_token**’ı FirstApi ve SecondApi isteklerinde **Authorization** header’ında kullanın.
 
 Refresh token ile yeni access token almak için: **POST** `http://localhost:5200/api/auth/refresh` — Body: `{ "refreshToken": "BURAYA_REFRESH_TOKEN" }`.
 
@@ -197,20 +197,20 @@ AuthApi ayarları (`AuthApi/appsettings.json`): **Keycloak:Authority**, **Keyclo
 
 ## 5. API’leri Çalıştırma ve Token ile Çağırma
 
-### 5.1 AuthApi, FirstApp ve SecondApp’i Çalıştırma
+### 5.1 AuthApi, FirstApi ve SecondApi’i Çalıştırma
 
 - Visual Studio’dan projeleri ayrı ayrı çalıştırabilirsiniz (F5 veya “Run”).
 - Veya terminalde:
   - **AuthApi:** `AuthApi` klasöründe `dotnet run` → `http://localhost:5200` / `https://localhost:7225`
-  - **FirstApp:** `FirstApp` klasöründe `dotnet run` → `http://localhost:5198` / `https://localhost:7223`
-  - **SecondApp:** `SecondApp` klasöründe `dotnet run` → `http://localhost:5131` / `https://localhost:7067`
+  - **FirstApi:** `FirstApi` klasöründe `dotnet run` → `http://localhost:5198` / `https://localhost:7223`
+  - **SecondApi:** `SecondApi` klasöründe `dotnet run` → `http://localhost:5131` / `https://localhost:7067`
 
-**Akış:** Önce **AuthApi**’de login olun → dönen **access_token**’ı alın → FirstApp / SecondApp isteklerinde **Authorization: Bearer &lt;access_token&gt;** header’ı ile gönderin.
+**Akış:** Önce **AuthApi**’de login olun → dönen **access_token**’ı alın → FirstApi / SecondApi isteklerinde **Authorization: Bearer &lt;access_token&gt;** header’ı ile gönderin.
 
 ### 5.2 Token Gerektirmeyen Endpoint (test)
 
-- FirstApp: `GET https://localhost:PORT/WeatherForecast/public`
-- SecondApp: `GET https://localhost:PORT/WeatherForecast/public`
+- FirstApi: `GET https://localhost:PORT/WeatherForecast/public`
+- SecondApi: `GET https://localhost:PORT/WeatherForecast/public`
 
 Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 
@@ -221,8 +221,8 @@ Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 | `GET …/WeatherForecast` | **Admin** | Sadece Admin rolü erişir. |
 | `GET …/WeatherForecast/user` | **Admin, User** | Admin ve User rolleri erişir (User için ayrı metod). |
 
-- FirstApp: `GET https://localhost:PORT/WeatherForecast` (Admin), `GET https://localhost:PORT/WeatherForecast/user` (Admin veya User)
-- SecondApp: aynı yapı.
+- FirstApi: `GET https://localhost:PORT/WeatherForecast` (Admin), `GET https://localhost:PORT/WeatherForecast/user` (Admin veya User)
+- SecondApi: aynı yapı.
 
 Bu isteklerde **Authorization** header’ı gerekir. Token’ı **AuthApi**’nin `/api/auth/login` endpoint’inden alın (örn. `admin`/`admin` veya `user`/`user`); aynı token’ı burada kullanın.
 
@@ -239,7 +239,7 @@ $headers = @{ Authorization = "Bearer $token" }
 Invoke-RestMethod -Uri "https://localhost:7XXX/WeatherForecast" -Headers $headers
 ```
 
-Aynı token ile hem FirstApp hem SecondApp’e istek atabilirsiniz; ortak giriş bu şekilde çalışır.
+Aynı token ile hem FirstApi hem SecondApi’e istek atabilirsiniz; ortak giriş bu şekilde çalışır.
 
 ---
 
@@ -251,9 +251,9 @@ Aynı token ile hem FirstApp hem SecondApp’e istek atabilirsiniz; ortak giriş
 | 2 | KeyCloak’ta `KeyCloakApp` realm’i ve `backend-api` client’ı oluşturduk. |
 | 3 | Client’a audience mapper ekleyip `audience = backend-api` yaptık. |
 | 4 | **AuthApi** ile login olup token aldık (veya doğrudan Keycloak token endpoint’i kullandık). |
-| 5 | Dönen JWT’yi `Authorization: Bearer <token>` ile FirstApp ve SecondApp’e gönderdik. |
+| 5 | Dönen JWT’yi `Authorization: Bearer <token>` ile FirstApi ve SecondApi’e gönderdik. |
 
-**AuthApi** tüm girişleri toplar; Keycloak’tan alınan access_token FirstApp ve SecondApp’te aynı şekilde kullanılır. Her iki API de aynı **Authority** ve **Audience** ile JWT doğruladığı için tek token yeterli.
+**AuthApi** tüm girişleri toplar; Keycloak’tan alınan access_token FirstApi ve SecondApi’te aynı şekilde kullanılır. Her iki API de aynı **Authority** ve **Audience** ile JWT doğruladığı için tek token yeterli.
 
 ---
 

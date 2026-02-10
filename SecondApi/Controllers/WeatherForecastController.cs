@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FirstApp.Controllers
+namespace SecondApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -14,7 +14,7 @@ namespace FirstApp.Controllers
 
         /// <summary>Token gerekmez (test için).</summary>
         [HttpGet("public")]
-        public IActionResult GetPublic() => Ok(new { Message = "FirstApp - Herkese açık endpoint.", Time = DateTime.UtcNow });
+        public IActionResult GetPublic() => Ok(new { Message = "SecondApi - Herkese açık endpoint.", Time = DateTime.UtcNow });
 
         /// <summary>Sadece Admin rolü erişebilir.</summary>
         [Authorize(Roles = "Admin")]
@@ -36,7 +36,7 @@ namespace FirstApp.Controllers
         public IActionResult GetUser()
         {
             var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value;
-            return Ok(new { Message = "FirstApp - User/Admin endpoint.", User = username, Time = DateTime.UtcNow });
+            return Ok(new { Message = "SecondApi - User/Admin endpoint.", User = username, Time = DateTime.UtcNow });
         }
     }
 }
