@@ -1,41 +1,48 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using InventoryApi.Data;
+using InventoryApi.Entities;
+using InventoryApi.Models;
 
 namespace InventoryApi.Controllers;
 
 /// <summary>
-/// Envanter / Stok API'si. Ortak Keycloak token ile erişilir.
+/// Envanter / Stok API'si. Ortak Keycloak token ile erişilir. Veri PostgreSQL Inventory veritabanında.
 /// </summary>
 [ApiController]
 [Route("[controller]")]
 public class InventoryController : ControllerBase
 {
-    private static readonly List<InventoryItem> _items = new()
+    private readonly InventoryDbContext _db;
+
+    public InventoryController(InventoryDbContext db)
     {
-        new InventoryItem(1, "Ürün A", 100, "Depo-1"),
-        new InventoryItem(2, "Ürün B", 50, "Depo-1"),
-        new InventoryItem(3, "Ürün C", 200, "Depo-2"),
-    };
+        _db = db;
+    }
 
     /// <summary>Token gerekmez; ürün listesi (sadece okuma).</summary>
     [HttpGet("public")]
-    public IActionResult GetPublic()
+    public async Task<IActionResult> GetPublic(CancellationToken cancellationToken)
     {
-        var list = _items.Select(i => new { i.Id, i.ProductName, InStock = i.Quantity > 0 });
+        var list = await _db.InventoryItems
+            .Select(i => new { i.Id, i.ProductName, InStock = i.Quantity > 0 })
+            .ToListAsync(cancellationToken);
         return Ok(new { Message = "InventoryApi - Stok servisi. Giriş yaparak detay ve güncelleme yapabilirsiniz.", Items = list, Time = DateTime.UtcNow });
     }
 
     /// <summary>Tüm stok detayı. Sadece Admin.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet]
-    public ActionResult<IEnumerable<InventoryItem>> GetAll() => Ok(_items);
+    public async Task<ActionResult<IEnumerable<InventoryItem>>> GetAll(CancellationToken cancellationToken)
+        => Ok(await _db.InventoryItems.ToListAsync(cancellationToken));
 
     /// <summary>Tek ürün stok bilgisi. Admin veya User.</summary>
     [Authorize(Roles = "Admin,User")]
     [HttpGet("{id:int}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {
-        var item = _items.Find(i => i.Id == id);
+        var item = await _db.InventoryItems.FindAsync([id], cancellationToken);
         if (item == null) return NotFound();
         return Ok(item);
     }
@@ -43,16 +50,12 @@ public class InventoryController : ControllerBase
     /// <summary>Stok miktarı güncelle. Sadece Admin.</summary>
     [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
-    public IActionResult UpdateQuantity(int id, [FromBody] UpdateQuantityRequest request)
+    public async Task<IActionResult> UpdateQuantity(int id, [FromBody] UpdateQuantityRequest request, CancellationToken cancellationToken)
     {
-        var item = _items.Find(i => i.Id == id);
+        var item = await _db.InventoryItems.FindAsync([id], cancellationToken);
         if (item == null) return NotFound();
-        var updated = item with { Quantity = request.Quantity };
-        var index = _items.IndexOf(item);
-        _items[index] = updated;
-        return Ok(updated);
+        item.Quantity = request.Quantity;
+        await _db.SaveChangesAsync(cancellationToken);
+        return Ok(item);
     }
 }
-
-public record InventoryItem(int Id, string ProductName, int Quantity, string Location);
-public record UpdateQuantityRequest(int Quantity);

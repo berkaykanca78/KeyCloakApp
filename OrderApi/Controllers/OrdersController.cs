@@ -1,22 +1,25 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OrderApi.Data;
+using OrderApi.Entities;
+using OrderApi.Models;
 
 namespace OrderApi.Controllers;
 
 /// <summary>
-/// Sipariş API'si. Ortak Keycloak token ile erişilir.
+/// Sipariş API'si. Ortak Keycloak token ile erişilir. Veri MSSQL Order veritabanında (T-SQL).
 /// </summary>
 [ApiController]
 [Route("[controller]")]
 public class OrdersController : ControllerBase
 {
-    private static readonly List<Order> _orders = new()
+    private readonly OrderDbContext _db;
+
+    public OrdersController(OrderDbContext db)
     {
-        new Order(1, "Ürün A", 3, "Müşteri 1", "user", DateTime.UtcNow.AddDays(-2)),
-        new Order(2, "Ürün B", 1, "Müşteri 2", "admin", DateTime.UtcNow.AddDays(-1)),
-        new Order(3, "Ürün C", 5, "Müşteri 3", "user", DateTime.UtcNow),
-    };
-    private static int _nextId = 4;
+        _db = db;
+    }
 
     /// <summary>Token gerekmez; genel bilgi.</summary>
     [HttpGet("public")]
@@ -29,32 +32,43 @@ public class OrdersController : ControllerBase
     /// <summary>Tüm siparişler. Sadece Admin.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet]
-    public ActionResult<IEnumerable<Order>> GetAll()
+    public async Task<ActionResult<IEnumerable<Order>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(_orders.OrderByDescending(o => o.CreatedAt));
+        var list = await _db.Orders.OrderByDescending(o => o.CreatedAt).ToListAsync(cancellationToken);
+        return Ok(list);
     }
 
     /// <summary>Giriş yapan kullanıcının siparişleri. Admin veya User.</summary>
     [Authorize(Roles = "Admin,User")]
     [HttpGet("my")]
-    public IActionResult GetMyOrders()
+    public async Task<IActionResult> GetMyOrders(CancellationToken cancellationToken)
     {
         var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value;
-        var myOrders = _orders.Where(o => string.Equals(o.CreatedBy, username, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (string.IsNullOrEmpty(username))
+            return Ok(Array.Empty<Order>());
+        var myOrders = await _db.Orders
+            .Where(o => o.CreatedBy == username)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync(cancellationToken);
         return Ok(myOrders);
     }
 
     /// <summary>Yeni sipariş oluştur. Admin veya User.</summary>
     [Authorize(Roles = "Admin,User")]
     [HttpPost]
-    public IActionResult Create([FromBody] CreateOrderRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateOrderRequest request, CancellationToken cancellationToken)
     {
         var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value ?? "unknown";
-        var order = new Order(_nextId++, request.ProductName, request.Quantity, request.CustomerName, username, DateTime.UtcNow);
-        _orders.Add(order);
+        var order = new Order
+        {
+            ProductName = request.ProductName,
+            Quantity = request.Quantity,
+            CustomerName = request.CustomerName,
+            CreatedBy = username,
+            CreatedAt = DateTime.UtcNow
+        };
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(GetAll), new { id = order.Id }, order);
     }
 }
-
-public record Order(int Id, string ProductName, int Quantity, string CustomerName, string CreatedBy, DateTime CreatedAt);
-public record CreateOrderRequest(string ProductName, int Quantity, string CustomerName);

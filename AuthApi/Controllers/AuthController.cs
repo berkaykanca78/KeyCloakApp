@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AuthApi.Models;
 
 namespace AuthApi.Controllers;
 
@@ -112,25 +112,4 @@ public class AuthController : ControllerBase
             claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
         });
     }
-}
-
-public record LoginRequest(string Username, string Password);
-public record RefreshRequest(string RefreshToken);
-
-public class KeycloakTokenResponse
-{
-    [JsonPropertyName("access_token")]
-    public string? AccessToken { get; set; }
-    [JsonPropertyName("expires_in")]
-    public int? ExpiresIn { get; set; }
-    [JsonPropertyName("refresh_expires_in")]
-    public int? RefreshExpiresIn { get; set; }
-    [JsonPropertyName("refresh_token")]
-    public string? RefreshToken { get; set; }
-    [JsonPropertyName("token_type")]
-    public string? TokenType { get; set; }
-    [JsonPropertyName("session_state")]
-    public string? SessionState { get; set; }
-    [JsonPropertyName("scope")]
-    public string? Scope { get; set; }
 }

@@ -1,12 +1,24 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using InventoryApi.Data;
+using InventoryApi.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+builder.Services.AddDbContext<InventoryDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -89,6 +101,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseCors();
+
+// Hiç kayıt yoksa seed data ekle
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+    if (!await db.InventoryItems.AnyAsync())
+    {
+        await db.InventoryItems.AddRangeAsync(
+            new InventoryItem { ProductName = "Ürün A", Quantity = 100, Location = "Depo-1" },
+            new InventoryItem { ProductName = "Ürün B", Quantity = 50, Location = "Depo-1" },
+            new InventoryItem { ProductName = "Ürün C", Quantity = 200, Location = "Depo-2" });
+        await db.SaveChangesAsync();
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

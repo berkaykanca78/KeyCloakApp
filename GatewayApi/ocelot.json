@@ -1,0 +1,61 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/auth",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7225 }],
+      "UpstreamPathTemplate": "/api/auth",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "auth"
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7225 }],
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "auth"
+    },
+    {
+      "DownstreamPathTemplate": "/orders",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
+      "UpstreamPathTemplate": "/orders",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "orders"
+    },
+    {
+      "DownstreamPathTemplate": "/orders/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
+      "UpstreamPathTemplate": "/orders/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "orders"
+    },
+    {
+      "DownstreamPathTemplate": "/inventory",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
+      "UpstreamPathTemplate": "/inventory",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "inventory"
+    },
+    {
+      "DownstreamPathTemplate": "/inventory/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
+      "UpstreamPathTemplate": "/inventory/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "inventory"
+    }
+  ],
+  "SwaggerEndPoints": [
+    { "Key": "auth", "Config": [{ "Name": "Auth API", "Version": "v1", "Url": "https://localhost:7225/swagger/v1/swagger.json" }] },
+    { "Key": "orders", "Config": [{ "Name": "Order API", "Version": "v1", "Url": "https://localhost:7223/swagger/v1/swagger.json" }] },
+    { "Key": "inventory", "Config": [{ "Name": "Inventory API", "Version": "v1", "Url": "https://localhost:7067/swagger/v1/swagger.json" }] }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:5001",
+    "DangerousAcceptAnyServerCertificateValidator": true
+  }
+}

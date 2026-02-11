@@ -1,12 +1,24 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OrderApi.Data;
+using OrderApi.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+builder.Services.AddDbContext<OrderDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -89,6 +101,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseCors();
+
+// Hiç kayıt yoksa seed data ekle
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
+    if (!await db.Orders.AnyAsync())
+    {
+        var now = DateTime.UtcNow;
+        await db.Orders.AddRangeAsync(
+            new Order { ProductName = "Ürün A", Quantity = 3, CustomerName = "Müşteri 1", CreatedBy = "user", CreatedAt = now.AddDays(-2) },
+            new Order { ProductName = "Ürün B", Quantity = 1, CustomerName = "Müşteri 2", CreatedBy = "admin", CreatedAt = now.AddDays(-1) },
+            new Order { ProductName = "Ürün C", Quantity = 5, CustomerName = "Müşteri 3", CreatedBy = "user", CreatedAt = now });
+        await db.SaveChangesAsync();
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
