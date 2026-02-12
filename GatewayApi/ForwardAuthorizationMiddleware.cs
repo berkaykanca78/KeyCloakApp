@@ -14,6 +14,8 @@ public sealed class ForwardAuthorizationMiddleware
     {
         if (context.Request.Headers.TryGetValue("Authorization", out var auth) && !string.IsNullOrEmpty(auth))
             AuthorizationHeaderHolder.Authorization = auth.ToString();
+        else
+            AuthorizationHeaderHolder.Authorization = null;
         return _next(context);
     }
 }
