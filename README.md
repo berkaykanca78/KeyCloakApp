@@ -86,7 +86,7 @@ Gateway'de **tek bir Swagger UI** var; Auth, Order ve Inventory API'leri açıl�
 
 ### Ne yapman gerekiyor?
 
-1. **Keycloak + veritabanlarını çalıştır**
+1. **Keycloak + veritabanları + RabbitMQ'yu çalıştır** (sipariş → stok event'leri için RabbitMQ gerekli)
    ```bash
    docker-compose up -d
    ```
@@ -129,7 +129,7 @@ Gateway'de **tek bir Swagger UI** var; Auth, Order ve Inventory API'leri açıl�
 docker-compose up -d
 ```
 
-Keycloak (8080), PostgreSQL (5432) ve MSSQL (1433) container'ları çalışır.
+Keycloak (8080), PostgreSQL (5432), MSSQL (1433) ve RabbitMQ (5672, 15672) container'ları çalışır.
 
 ### 2. Migration'ları çalıştırma
 
@@ -144,6 +144,84 @@ dotnet ef database update --project OrderApi --startup-project OrderApi
 ```
 
 İlk migration'dan sonra Inventory tablosuna örnek 3 stok kaydı (seed) eklenir.
+
+---
+
+## RabbitMQ (Mesaj Kuyruğu)
+
+Servisler arasında **event tabanlı iletişim** için **RabbitMQ** kullanılır. Sipariş verildiğinde OrderApi bir event yayımlar; InventoryApi bu event'i dinleyerek stoktan düşüm yapar. Altyapı olarak **MassTransit** ile **RabbitMQ** entegre edilmiştir.
+
+### RabbitMQ'yu çalıştırma
+
+```bash
+docker-compose up -d
+```
+
+Tüm servislerle birlikte RabbitMQ da ayağa kalkar. Sadece RabbitMQ (ve istersen veritabanları) için:
+
+```bash
+docker-compose up -d rabbitmq postgres mssql
+```
+
+| Bileşen        | Port  | Açıklama                          |
+|----------------|-------|-----------------------------------|
+| AMQP (mesajlar) | 5672  | OrderApi ve InventoryApi bu porta bağlanır. |
+| Yönetim arayüzü | 15672 | Tarayıcıdan kuyruk/exchange takibi. |
+
+### Yönetim arayüzü
+
+- **Adres:** http://localhost:15672  
+- **Kullanıcı:** `guest`  
+- **Şifre:** `guest`  
+
+Arayüzde:
+
+- **Exchanges:** OrderApi'nin event yayımladığı exchange (örn. `Shared.Events:OrderPlacedEvent`).
+- **Queues:** InventoryApi'nin dinlediği kuyruk; mesaj sayıları (Ready / Unacked) burada görünür.
+- Bir kuyruğa tıklayıp **Get messages** ile event içeriğini (JSON) okuyabilirsin.
+
+### Yapılandırma
+
+OrderApi ve InventoryApi `appsettings.json` içinde RabbitMQ ayarlarını kullanır:
+
+```json
+"RabbitMQ": { "Host": "localhost", "Username": "guest", "Password": "guest" }
+```
+
+Docker dışında (örn. cloud) RabbitMQ kullanıyorsan sadece `Host`, `Username` ve `Password` değerlerini güncelle.
+
+---
+
+## Event bildirimi (Order ↔ Inventory)
+
+Sipariş oluşturulduğunda **stoktan otomatik düşüm** yapılması için Order ve Inventory servisleri **event** ile haberleşir; doğrudan HTTP çağrısı yoktur.
+
+### Akış
+
+1. Kullanıcı **OrderApi**'ye sipariş gönderir: `POST /orders` (ProductName, Quantity, CustomerName).
+2. Sipariş Order veritabanına yazılır.
+3. **OrderApi** RabbitMQ'ya **OrderPlacedEvent** yayımlar (OrderId, ProductName, Quantity).
+4. **InventoryApi** bu event'i dinler (**OrderPlacedConsumer**), ilgili ürünü `ProductName` ile bulur ve stoktan **Quantity** kadar düşer.
+5. Yetersiz stok varsa stok 0'a çekilir ve uyarı loglanır; ürün yoksa sadece uyarı loglanır.
+
+### Paylaşılan event kontratı
+
+**Shared.Events** projesi tek bir event tanımını tutar; hem OrderApi hem InventoryApi buna referans verir:
+
+| Event              | Yayımlayan | Tüketen        | İçerik                                  |
+|--------------------|------------|-----------------|-----------------------------------------|
+| **OrderPlacedEvent** | OrderApi   | InventoryApi    | OrderId, ProductName, Quantity          |
+
+Bu sayede iki servis birbirini çağırmadan, sadece mesaj kuyruğu üzerinden senkronize olur.
+
+### Teknik detay
+
+- **Kütüphane:** MassTransit + MassTransit.RabbitMQ  
+- **Event kaynağı:** `Shared.Events/OrderPlacedEvent.cs`  
+- **Publisher:** OrderApi, sipariş kaydından hemen sonra `IPublishEndpoint.Publish(OrderPlacedEvent)`  
+- **Consumer:** InventoryApi, `Consumers/OrderPlacedConsumer.cs` — event gelince stok güncellemesi yapar  
+
+Event'i RabbitMQ arayüzünde görmek için: **Exchanges** sekmesinde `Shared.Events:OrderPlacedEvent`, **Queues** sekmesinde MassTransit'in oluşturduğu consumer kuyruğu.
 
 ---
 

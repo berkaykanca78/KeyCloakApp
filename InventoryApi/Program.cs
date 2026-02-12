@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MassTransit;
+using InventoryApi.Consumers;
 using InventoryApi.Data;
 using InventoryApi.Entities;
 
@@ -19,6 +21,22 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<OrderPlacedConsumer>();
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(rabbitMq["Host"] ?? "localhost", "/", h =>
+        {
+            h.Username(rabbitMq["Username"] ?? "guest");
+            h.Password(rabbitMq["Password"] ?? "guest");
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

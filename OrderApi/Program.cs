@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MassTransit;
 using OrderApi.Data;
 using OrderApi.Entities;
+using Shared.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,21 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(rabbitMq["Host"] ?? "localhost", "/", h =>
+        {
+            h.Username(rabbitMq["Username"] ?? "guest");
+            h.Password(rabbitMq["Password"] ?? "guest");
+        });
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

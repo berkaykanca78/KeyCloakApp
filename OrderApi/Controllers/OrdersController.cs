@@ -1,24 +1,29 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 using OrderApi.Data;
 using OrderApi.Entities;
 using OrderApi.Models;
+using Shared.Events;
 
 namespace OrderApi.Controllers;
 
 /// <summary>
 /// Sipariş API'si. Ortak Keycloak token ile erişilir. Veri MSSQL Order veritabanında (T-SQL).
+/// Sipariş oluşturulunca OrderPlaced event yayımlanır; Inventory servisi stoktan düşer.
 /// </summary>
 [ApiController]
 [Route("[controller]")]
 public class OrdersController : ControllerBase
 {
     private readonly OrderDbContext _db;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public OrdersController(OrderDbContext db)
+    public OrdersController(OrderDbContext db, IPublishEndpoint publishEndpoint)
     {
         _db = db;
+        _publishEndpoint = publishEndpoint;
     }
 
     /// <summary>Token gerekmez; genel bilgi.</summary>
@@ -69,6 +74,15 @@ public class OrdersController : ControllerBase
         };
         _db.Orders.Add(order);
         await _db.SaveChangesAsync(cancellationToken);
+
+        // Inventory servisine sipariş bildirimi — stoktan düşüm için event yayımla
+        await _publishEndpoint.Publish(new OrderPlacedEvent
+        {
+            OrderId = order.Id,
+            ProductName = order.ProductName,
+            Quantity = order.Quantity
+        }, cancellationToken);
+
         return CreatedAtAction(nameof(GetAll), new { id = order.Id }, order);
     }
 }
