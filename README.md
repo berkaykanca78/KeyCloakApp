@@ -192,36 +192,40 @@ Docker dışında (örn. cloud) RabbitMQ kullanıyorsan sadece `Host`, `Username
 
 ---
 
-## Event bildirimi (Order ↔ Inventory)
+## CQRS, Saga ve Outbox Pattern
 
-Sipariş oluşturulduğunda **stoktan otomatik düşüm** yapılması için Order ve Inventory servisleri **event** ile haberleşir; doğrudan HTTP çağrısı yoktur.
+**OrderApi** aşağıdaki mimari pattern'leri kullanır:
 
-### Akış
+| Pattern | Açıklama |
+|--------|----------|
+| **CQRS (MediatR)** | Komutlar (`CreateOrderCommand`) ve sorgular (`GetOrdersQuery`, `GetMyOrdersQuery`) ayrılır; handler'lar tek sorumluluk taşır. |
+| **Outbox** | Sipariş kaydı ile `OrderPlacedEvent` aynı veritabanı işlemine yazılır; `OutboxMessages` tablosuna kaydedilir, arka planda **OutboxPublisherHostedService** RabbitMQ'ya publish eder. Böylece "kayıt tamamlandı ama mesaj gitmedi" riski azalır. |
+| **Saga (orchestration)** | `OrderPlacedEvent` gelince **OrderStateMachine** tetiklenir; InventoryApi'ye **ReserveStockRequest** (request/response) gönderilir. Başarılıysa saga tamamlanır; stok yetersiz veya hata olursa **OrderCancelledEvent** yayımlanır (compensation). |
 
-1. Kullanıcı **OrderApi**'ye sipariş gönderir: `POST /orders` (ProductName, Quantity, CustomerName).
-2. Sipariş Order veritabanına yazılır.
-3. **OrderApi** RabbitMQ'ya **OrderPlacedEvent** yayımlar (OrderId, ProductName, Quantity).
-4. **InventoryApi** bu event'i dinler (**OrderPlacedConsumer**), ilgili ürünü `ProductName` ile bulur ve stoktan **Quantity** kadar düşer.
-5. Yetersiz stok varsa stok 0'a çekilir ve uyarı loglanır; ürün yoksa sadece uyarı loglanır.
+### Akış (Saga + Outbox)
 
-### Paylaşılan event kontratı
+1. Kullanıcı **OrderApi**'ye `POST /orders` ile sipariş gönderir.
+2. **CreateOrderCommandHandler** (MediatR): Siparişi kaydeder, **OutboxMessages** tablosuna `OrderPlacedEvent` ekler (transactional).
+3. **OutboxPublisherHostedService** periyodik olarak bekleyen mesajları RabbitMQ'ya publish eder.
+4. **OrderStateMachine** (Saga) `OrderPlacedEvent`'i alır → **ReserveStockRequest** gönderir.
+5. **InventoryApi** `ReserveStockConsumer` ile isteği işler, stok düşer, **ReserveStockResponse** döner.
+6. Saga yanıta göre tamamlanır veya **OrderCancelledEvent** yayımlar.
 
-**Shared.Events** projesi tek bir event tanımını tutar; hem OrderApi hem InventoryApi buna referans verir:
+### Paylaşılan mesajlar (Shared.Events)
 
-| Event              | Yayımlayan | Tüketen        | İçerik                                  |
-|--------------------|------------|-----------------|-----------------------------------------|
-| **OrderPlacedEvent** | OrderApi   | InventoryApi    | OrderId, ProductName, Quantity          |
-
-Bu sayede iki servis birbirini çağırmadan, sadece mesaj kuyruğu üzerinden senkronize olur.
+| Mesaj | Yön | Açıklama |
+|-------|-----|----------|
+| **OrderPlacedEvent** | OrderApi → Saga | CorrelationId, OrderId, ProductName, Quantity |
+| **ReserveStockRequest** | Saga → InventoryApi | Stok rezervasyon isteği |
+| **ReserveStockResponse** | InventoryApi → Saga | Success, Reason |
+| **OrderCancelledEvent** | Saga → (log/compensation) | İptal nedeni |
 
 ### Teknik detay
 
-- **Kütüphane:** MassTransit + MassTransit.RabbitMQ  
-- **Event kaynağı:** `Shared.Events/OrderPlacedEvent.cs`  
-- **Publisher:** OrderApi, sipariş kaydından hemen sonra `IPublishEndpoint.Publish(OrderPlacedEvent)`  
-- **Consumer:** InventoryApi, `Consumers/OrderPlacedConsumer.cs` — event gelince stok güncellemesi yapar  
-
-Event'i RabbitMQ arayüzünde görmek için: **Exchanges** sekmesinde `Shared.Events:OrderPlacedEvent`, **Queues** sekmesinde MassTransit'in oluşturduğu consumer kuyruğu.
+- **CQRS:** MediatR, `OrderApi.Application.Commands`, `OrderApi.Application.Queries`
+- **Outbox:** `OrderApi.Infrastructure.Persistence.OutboxMessage`, `OrderApi.Infrastructure.Outbox.OutboxPublisherHostedService`
+- **Saga:** MassTransit state machine, `OrderApi.Application.Saga.OrderStateMachine`, `OrderSagaState` (InMemory repository)
+- **InventoryApi:** Sadece **ReserveStockConsumer** (request/response); eski `OrderPlacedConsumer` saga kullanıldığı için devre dışı.
 
 ---
 

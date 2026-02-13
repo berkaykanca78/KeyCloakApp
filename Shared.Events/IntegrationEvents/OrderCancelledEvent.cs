@@ -1,13 +1,12 @@
 namespace Shared.Events.IntegrationEvents;
 
 /// <summary>
-/// Integration Event: Sipariş verildiğinde OrderApi tarafından yayımlanır.
-/// Saga korelasyonu için CorrelationId kullanılır.
+/// Saga compensation: Sipariş iptal edildi (stok yetersiz veya hata).
 /// </summary>
-public record OrderPlacedEvent
+public record OrderCancelledEvent
 {
-    public Guid CorrelationId { get; init; }
     public int OrderId { get; init; }
     public string ProductName { get; init; } = string.Empty;
     public int Quantity { get; init; }
+    public string Reason { get; init; } = string.Empty;
 }

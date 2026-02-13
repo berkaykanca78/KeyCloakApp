@@ -1,78 +1,75 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderApi.Application.Commands;
 using OrderApi.Application.DTOs;
-using OrderApi.Application.UseCases;
+using OrderApi.Application.Queries;
 using OrderApi.Domain.Aggregates;
+using Shared.Api;
 
 namespace OrderApi.Presentation.Controllers;
 
 /// <summary>
-/// Sipariş API'si. DDD Presentation: Controller sadece use case'leri çağırır.
+/// Sipariş API'si. CQRS (MediatR) + Saga/Outbox. Tüm yanıtlar ResultDto ile sarılı.
 /// </summary>
 [ApiController]
 [Route("[controller]")]
 public class OrdersController : ControllerBase
 {
-    private readonly GetOrdersUseCase _getOrdersUseCase;
-    private readonly GetMyOrdersUseCase _getMyOrdersUseCase;
-    private readonly CreateOrderUseCase _createOrderUseCase;
+    private readonly IMediator _mediator;
 
-    public OrdersController(
-        GetOrdersUseCase getOrdersUseCase,
-        GetMyOrdersUseCase getMyOrdersUseCase,
-        CreateOrderUseCase createOrderUseCase)
+    public OrdersController(IMediator mediator)
     {
-        _getOrdersUseCase = getOrdersUseCase;
-        _getMyOrdersUseCase = getMyOrdersUseCase;
-        _createOrderUseCase = createOrderUseCase;
+        _mediator = mediator;
     }
 
     /// <summary>Token gerekmez; genel bilgi.</summary>
     [HttpGet("public")]
-    public IActionResult GetPublic() => Ok(new
+    public IActionResult GetPublic() => Ok(ResultDto<object>.Success(new
     {
-        Message = "OrderApi - Sipariş servisi. Giriş yaparak sipariş oluşturabilir veya listeyi görebilirsiniz.",
+        Message = "OrderApi - Sipariş servisi (CQRS + Saga/Outbox). Giriş yaparak sipariş oluşturabilir veya listeyi görebilirsiniz.",
         Time = DateTime.UtcNow
-    });
+    }));
 
     /// <summary>Tüm siparişler. Sadece Admin.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Order>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<ResultDto<IEnumerable<Order>>>> GetAll(CancellationToken cancellationToken)
     {
-        var list = await _getOrdersUseCase.ExecuteAsync(cancellationToken);
-        return Ok(list);
+        var list = await _mediator.Send(new GetOrdersQuery(), cancellationToken);
+        return Ok(ResultDto<IEnumerable<Order>>.Success(list));
     }
 
     /// <summary>Giriş yapan kullanıcının siparişleri. Admin veya User.</summary>
     [Authorize(Roles = "Admin,User")]
     [HttpGet("my")]
-    public async Task<IActionResult> GetMyOrders(CancellationToken cancellationToken)
+    public async Task<ActionResult<ResultDto<IEnumerable<Order>>>> GetMyOrders(CancellationToken cancellationToken)
     {
-        var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value;
-        var list = await _getMyOrdersUseCase.ExecuteAsync(username ?? string.Empty, cancellationToken);
-        return Ok(list);
+        var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value ?? string.Empty;
+        var list = await _mediator.Send(new GetMyOrdersQuery(username), cancellationToken);
+        return Ok(ResultDto<IEnumerable<Order>>.Success(list));
     }
 
-    /// <summary>Yeni sipariş oluştur. Admin veya User.</summary>
+    /// <summary>Yeni sipariş oluştur. Stok yeterliliği baştan kontrol edilir; yetersizse hata döner.</summary>
     [Authorize(Roles = "Admin,User")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateOrderRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<ResultDto<Order>>> Create([FromBody] CreateOrderRequest request, CancellationToken cancellationToken)
     {
         var username = User.Identity?.Name ?? User.FindFirst("preferred_username")?.Value ?? "unknown";
         try
         {
-            var (order, _) = await _createOrderUseCase.ExecuteAsync(
+            var result = await _mediator.Send(new CreateOrderCommand(
                 request.ProductName,
                 request.Quantity,
                 request.CustomerName,
-                username,
-                cancellationToken);
-            return CreatedAtAction(nameof(GetAll), new { id = order.Id }, order);
+                username), cancellationToken);
+            if (!result.Success)
+                return BadRequest(ResultDto<Order>.Failure(result.ErrorMessage ?? "Sipariş oluşturulamadı."));
+            return CreatedAtAction(nameof(GetAll), new { id = result.Order!.Id }, ResultDto<Order>.Success(result.Order!, "Sipariş oluşturuldu."));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(ResultDto<Order>.Failure(ex.Message));
         }
     }
 }

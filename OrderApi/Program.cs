@@ -5,14 +5,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MassTransit;
-using OrderApi.Application.UseCases;
+using OrderApi.Application.Saga;
 using OrderApi.Domain.Aggregates;
 using OrderApi.Domain.Repositories;
+using OrderApi.Infrastructure.Outbox;
 using OrderApi.Infrastructure.Persistence;
+using OrderApi.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+var inventoryBaseUrl = builder.Configuration["InventoryApi:BaseUrl"] ?? "http://localhost:5131";
+builder.Services.AddHttpClient<IInventoryAvailabilityClient, InventoryAvailabilityClient>(c => c.BaseAddress = new Uri(inventoryBaseUrl.TrimEnd('/') + "/"));
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -23,13 +27,16 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<GetOrdersUseCase>();
-builder.Services.AddScoped<GetMyOrdersUseCase>();
-builder.Services.AddScoped<CreateOrderUseCase>();
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddHostedService<OutboxPublisherHostedService>();
 
 var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
 builder.Services.AddMassTransit(x =>
 {
+    x.AddSagaStateMachine<OrderStateMachine, OrderSagaState>()
+        .InMemoryRepository();
+
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMq["Host"] ?? "localhost", "/", h =>

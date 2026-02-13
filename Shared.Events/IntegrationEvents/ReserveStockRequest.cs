@@ -1,10 +1,9 @@
 namespace Shared.Events.IntegrationEvents;
 
 /// <summary>
-/// Integration Event: Sipariş verildiğinde OrderApi tarafından yayımlanır.
-/// Saga korelasyonu için CorrelationId kullanılır.
+/// Saga adımı: OrderApi saga'sı InventoryApi'den stok rezervasyonu ister.
 /// </summary>
-public record OrderPlacedEvent
+public record ReserveStockRequest
 {
     public Guid CorrelationId { get; init; }
     public int OrderId { get; init; }

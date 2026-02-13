@@ -29,11 +29,12 @@ builder.Services.AddScoped<GetAllInventoryUseCase>();
 builder.Services.AddScoped<GetInventoryByIdUseCase>();
 builder.Services.AddScoped<UpdateQuantityUseCase>();
 builder.Services.AddScoped<ReduceStockUseCase>();
+builder.Services.AddScoped<CheckAvailabilityUseCase>();
 
 var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<OrderPlacedConsumer>();
+    x.AddConsumer<ReserveStockConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host(rabbitMq["Host"] ?? "localhost", "/", h =>
