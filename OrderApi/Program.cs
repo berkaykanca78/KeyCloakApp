@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MassTransit;
-using OrderApi.Data;
-using OrderApi.Entities;
-using Shared.Events;
+using OrderApi.Application.UseCases;
+using OrderApi.Domain.Aggregates;
+using OrderApi.Domain.Repositories;
+using OrderApi.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,10 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<GetOrdersUseCase>();
+builder.Services.AddScoped<GetMyOrdersUseCase>();
+builder.Services.AddScoped<CreateOrderUseCase>();
 
 var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
 builder.Services.AddMassTransit(x =>
@@ -121,7 +126,7 @@ var app = builder.Build();
 
 app.UseCors();
 
-// Hiç kayıt yoksa seed data ekle
+// Hiç kayıt yoksa seed data ekle (DDD: domain factory kullanılır)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
@@ -129,9 +134,9 @@ using (var scope = app.Services.CreateScope())
     {
         var now = DateTime.UtcNow;
         await db.Orders.AddRangeAsync(
-            new Order { ProductName = "Ürün A", Quantity = 3, CustomerName = "Müşteri 1", CreatedBy = "user", CreatedAt = now.AddDays(-2) },
-            new Order { ProductName = "Ürün B", Quantity = 1, CustomerName = "Müşteri 2", CreatedBy = "admin", CreatedAt = now.AddDays(-1) },
-            new Order { ProductName = "Ürün C", Quantity = 5, CustomerName = "Müşteri 3", CreatedBy = "user", CreatedAt = now });
+            Order.CreateForSeed("Ürün A", 3, "Müşteri 1", "user", now.AddDays(-2)),
+            Order.CreateForSeed("Ürün B", 1, "Müşteri 2", "admin", now.AddDays(-1)),
+            Order.CreateForSeed("Ürün C", 5, "Müşteri 3", "user", now));
         await db.SaveChangesAsync();
     }
 }

@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MassTransit;
-using InventoryApi.Consumers;
-using InventoryApi.Data;
-using InventoryApi.Entities;
+using InventoryApi.Application.UseCases;
+using InventoryApi.Infrastructure.Messaging.Consumers;
+using InventoryApi.Domain.Aggregates;
+using InventoryApi.Domain.Repositories;
+using InventoryApi.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,12 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<GetInventoryPublicUseCase>();
+builder.Services.AddScoped<GetAllInventoryUseCase>();
+builder.Services.AddScoped<GetInventoryByIdUseCase>();
+builder.Services.AddScoped<UpdateQuantityUseCase>();
+builder.Services.AddScoped<ReduceStockUseCase>();
 
 var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
 builder.Services.AddMassTransit(x =>
@@ -122,16 +130,16 @@ var app = builder.Build();
 
 app.UseCors();
 
-// Hiç kayıt yoksa seed data ekle
+// Hiç kayıt yoksa seed data ekle (DDD: domain factory kullanılır)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
     if (!await db.InventoryItems.AnyAsync())
     {
         await db.InventoryItems.AddRangeAsync(
-            new InventoryItem { ProductName = "Ürün A", Quantity = 100, Location = "Depo-1" },
-            new InventoryItem { ProductName = "Ürün B", Quantity = 50, Location = "Depo-1" },
-            new InventoryItem { ProductName = "Ürün C", Quantity = 200, Location = "Depo-2" });
+            InventoryItem.CreateForSeed("Ürün A", 100, "Depo-1"),
+            InventoryItem.CreateForSeed("Ürün B", 50, "Depo-1"),
+            InventoryItem.CreateForSeed("Ürün C", 200, "Depo-2"));
         await db.SaveChangesAsync();
     }
 }
