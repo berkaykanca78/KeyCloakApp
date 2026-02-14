@@ -1,0 +1,159 @@
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: oklch(0.2 0.02 260);
+}
+
+.meta {
+  margin: 0;
+  color: oklch(0.5 0.02 260);
+  font-size: 0.9375rem;
+}
+
+.loading,
+.error {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.loading {
+  color: oklch(0.45 0.02 260);
+}
+
+.error {
+  background: oklch(0.96 0.02 25);
+  color: oklch(0.35 0.15 25);
+}
+
+.detail-card {
+  padding: 1.25rem;
+  background: oklch(0.99 0.005 260);
+  border: 1px solid oklch(0.92 0.01 260);
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-card h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: oklch(0.4 0.02 260);
+}
+
+.quantity {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: oklch(0.25 0.02 260);
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.form-section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: oklch(0.25 0.02 260);
+}
+
+.success {
+  color: oklch(0.35 0.12 145);
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9375rem;
+}
+
+.save-error {
+  background: oklch(0.96 0.02 25);
+  color: oklch(0.35 0.15 25);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9375rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 16rem;
+}
+
+label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: oklch(0.3 0.02 260);
+}
+
+input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid oklch(0.85 0.02 260);
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+
+input:focus-visible {
+  outline: 2px solid oklch(0.5 0.2 260);
+  outline-offset: 2px;
+}
+
+.hint {
+  font-size: 0.8125rem;
+  color: oklch(0.5 0.02 260);
+}
+
+button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: oklch(1 0 0);
+  background: oklch(0.45 0.2 260);
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: oklch(0.4 0.2 260);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button:focus-visible {
+  outline: 2px solid oklch(0.5 0.2 260);
+  outline-offset: 2px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  color: oklch(0.4 0.2 260);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.back-link:focus-visible {
+  outline: 2px solid oklch(0.5 0.2 260);
+  outline-offset: 2px;
+}

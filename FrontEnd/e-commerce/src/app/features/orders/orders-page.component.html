@@ -1,0 +1,24 @@
+<article class="page" aria-labelledby="orders-heading">
+  <header class="page-header">
+    <h1 id="orders-heading">Siparişlerim</h1>
+  </header>
+
+  @if (loading()) {
+    <p class="loading" role="status" aria-live="polite">Yükleniyor…</p>
+  } @else if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  } @else if (hasOrders()) {
+    <ul class="order-list" role="list">
+      @for (order of orders(); track order.id) {
+        <li class="order-card">
+          <span class="order-product">{{ order.productName }}</span>
+          <span class="order-qty">Adet: {{ order.quantity }}</span>
+          <span class="order-customer">{{ order.customerName }}</span>
+          <span class="order-date">{{ order.createdAt | date: 'short' }}</span>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="empty">Henüz siparişiniz yok.</p>
+  }
+</article>

@@ -1,0 +1,46 @@
+<article class="login-page" aria-labelledby="login-heading">
+  <h1 id="login-heading">Giriş</h1>
+  <p class="login-desc">Ürün ve stok sayfalarına erişmek için giriş yapın.</p>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
+    <div class="field">
+      <label for="username">Kullanıcı adı</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        autocomplete="username"
+        [attr.aria-invalid]="form.controls.username.invalid && form.controls.username.touched"
+        aria-describedby="username-err"
+      />
+      @if (form.controls.username.invalid && form.controls.username.touched) {
+        <span id="username-err" class="field-error">Kullanıcı adı gerekli</span>
+      }
+    </div>
+    <div class="field">
+      <label for="password">Şifre</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+        [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched"
+        aria-describedby="password-err"
+      />
+      @if (form.controls.password.invalid && form.controls.password.touched) {
+        <span id="password-err" class="field-error">Şifre gerekli</span>
+      }
+    </div>
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Giriş yapılıyor…' : 'Giriş yap' }}
+    </button>
+  </form>
+
+  <p class="back">
+    <a routerLink="/products">Ürünlere dön</a>
+  </p>
+</article>

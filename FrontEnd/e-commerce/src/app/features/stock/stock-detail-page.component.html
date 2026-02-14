@@ -1,0 +1,44 @@
+<article class="page" aria-labelledby="detail-heading">
+  @if (loading()) {
+    <p class="loading" role="status" aria-live="polite">Yükleniyor…</p>
+  } @else if (error() || !item()) {
+    <p class="error" role="alert">{{ error() || 'Ürün bulunamadı.' }}</p>
+    <a routerLink="/stock">Stok listesine dön</a>
+  } @else {
+    <header class="page-header">
+      <h1 id="detail-heading">{{ item()!.productName }} – Stok detayı</h1>
+      <p class="meta">Konum: {{ item()!.location }}</p>
+    </header>
+
+    <section class="detail-card" aria-labelledby="current-stock-heading">
+      <h2 id="current-stock-heading">Mevcut miktar</h2>
+      <p class="quantity">{{ item()!.quantity }}</p>
+    </section>
+
+    <section class="form-section" aria-labelledby="update-heading">
+      <h2 id="update-heading">Stok miktarı güncelle</h2>
+      @if (saveSuccess()) {
+        <p class="success" role="status">Stok güncellendi.</p>
+      }
+      @if (saveError()) {
+        <p class="save-error" role="alert">{{ saveError() }}</p>
+      }
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <label for="quantity">Yeni miktar</label>
+        <input
+          id="quantity"
+          type="number"
+          formControlName="quantity"
+          min="0"
+          aria-describedby="quantity-hint"
+        />
+        <span id="quantity-hint" class="hint">Sadece Admin yetkisi ile güncellenir.</span>
+        <button type="submit" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Kaydediliyor…' : 'Kaydet' }}
+        </button>
+      </form>
+    </section>
+
+    <a routerLink="/stock" class="back-link">← Stok listesine dön</a>
+  }
+</article>

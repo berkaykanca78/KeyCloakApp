@@ -1,0 +1,31 @@
+<article class="page" aria-labelledby="products-heading">
+  <header class="page-header">
+    <h1 id="products-heading">Ürünler</h1>
+    <p class="page-desc">{{ message() }}</p>
+  </header>
+
+  @if (loading()) {
+    <p class="loading" role="status" aria-live="polite">Yükleniyor…</p>
+  } @else if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  } @else if (hasItems()) {
+    <ul class="product-list" role="list">
+      @for (item of items(); track item.id) {
+        <li class="product-card">
+          <span class="product-name">{{ item.productName }}</span>
+          <span
+            class="badge"
+            [class.badge--in-stock]="item.inStock"
+            [class.badge--out-of-stock]="!item.inStock"
+            [attr.aria-label]="item.inStock ? 'Stokta var' : 'Stokta yok'"
+          >
+            {{ item.inStock ? 'Stokta var' : 'Stokta yok' }}
+          </span>
+          <a [routerLink]="['/stock', item.id]" class="link-detail">Stok detayı</a>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="empty">Henüz ürün bulunmuyor.</p>
+  }
+</article>

@@ -1,0 +1,19 @@
+<div class="app-layout">
+  <nav class="nav" aria-label="Ana menü">
+    <a routerLink="/products" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+      >Ürünler</a
+    >
+    <a routerLink="/stock" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+      >Stok</a
+    >
+    @if (auth.isAuthenticated()) {
+      <a routerLink="/orders" routerLinkActive="active">Siparişlerim</a>
+      <button type="button" class="nav-btn" (click)="logout()">Çıkış</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active">Giriş</a>
+    }
+  </nav>
+  <main class="main">
+    <router-outlet />
+  </main>
+</div>

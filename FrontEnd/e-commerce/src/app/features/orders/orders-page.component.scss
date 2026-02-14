@@ -1,0 +1,54 @@
+.page {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: oklch(0.2 0.02 260);
+}
+
+.loading,
+.error,
+.empty {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.error {
+  background: oklch(0.96 0.02 25);
+  color: oklch(0.35 0.15 25);
+}
+
+.order-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.order-card {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  background: oklch(0.99 0.005 260);
+  border: 1px solid oklch(0.92 0.01 260);
+  border-radius: 0.5rem;
+}
+
+.order-product {
+  font-weight: 500;
+  color: oklch(0.25 0.02 260);
+}
+
+.order-date {
+  font-size: 0.875rem;
+  color: oklch(0.5 0.02 260);
+}

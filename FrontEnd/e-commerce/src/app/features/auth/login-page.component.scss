@@ -1,0 +1,111 @@
+.login-page {
+  max-width: 24rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: oklch(0.2 0.02 260);
+}
+
+.login-desc {
+  margin: 0 0 1.5rem 0;
+  color: oklch(0.5 0.02 260);
+  font-size: 0.9375rem;
+}
+
+.error {
+  margin: 0 0 1rem 0;
+  padding: 0.75rem;
+  background: oklch(0.96 0.02 25);
+  color: oklch(0.35 0.15 25);
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: oklch(0.3 0.02 260);
+}
+
+.field input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid oklch(0.85 0.02 260);
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+
+.field input:focus-visible {
+  outline: 2px solid oklch(0.5 0.2 260);
+  outline-offset: 2px;
+}
+
+.field input[aria-invalid='true'] {
+  border-color: oklch(0.5 0.2 25);
+}
+
+.field-error {
+  font-size: 0.8125rem;
+  color: oklch(0.4 0.2 25);
+}
+
+button {
+  margin-top: 0.25rem;
+  padding: 0.625rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: oklch(1 0 0);
+  background: oklch(0.45 0.2 260);
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: oklch(0.4 0.2 260);
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+button:focus-visible {
+  outline: 2px solid oklch(0.5 0.2 260);
+  outline-offset: 2px;
+}
+
+.back {
+  margin: 1.5rem 0 0 0;
+  font-size: 0.9375rem;
+}
+
+.back a {
+  color: oklch(0.4 0.2 260);
+  text-decoration: none;
+}
+
+.back a:hover {
+  text-decoration: underline;
+}
+
+.back a:focus-visible {
+  outline: 2px solid oklch(0.5 0.2 260);
+  outline-offset: 2px;
+}
