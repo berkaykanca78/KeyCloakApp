@@ -1,9 +1,7 @@
 using System.Security.Claims;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Basket.API.Application.Commands;
 using Basket.API.Application.DTOs;
-using Basket.API.Application.Queries;
+using Basket.API.Application.Ports;
 using Basket.API.Domain.Aggregates;
 using Basket.API.Domain.ValueObjects;
 
@@ -14,11 +12,11 @@ namespace Basket.API.Presentation.Controllers;
 public class BasketController : ControllerBase
 {
     private const string BasketIdHeader = "X-Basket-Id";
-    private readonly IMediator _mediator;
+    private readonly IBasketService _basketService;
 
-    public BasketController(IMediator mediator)
+    public BasketController(IBasketService basketService)
     {
-        _mediator = mediator;
+        _basketService = basketService;
     }
 
     /// <summary>Sepet kimliği: query buyerId &gt; JWT sub &gt; X-Basket-Id header &gt; yeni Guid (response'da X-Basket-Id döner).</summary>
@@ -60,7 +58,7 @@ public class BasketController : ControllerBase
     public async Task<IActionResult> Get([FromQuery] string? buyerId, CancellationToken cancellationToken)
     {
         var resolvedBuyerId = GetOrCreateBuyerId(buyerId);
-        var basket = await _mediator.Send(new GetBasketQuery(resolvedBuyerId), cancellationToken);
+        var basket = await _basketService.GetBasketAsync(resolvedBuyerId, cancellationToken);
         if (basket == null)
         {
             var dto = new CustomerBasketDto { BuyerId = resolvedBuyerId, Items = new List<BasketItemDto>() };
@@ -76,14 +74,15 @@ public class BasketController : ControllerBase
     public async Task<IActionResult> AddItem([FromQuery] string? buyerId, [FromBody] AddBasketItemRequest request, CancellationToken cancellationToken)
     {
         var resolvedBuyerId = GetOrCreateBuyerId(buyerId);
-        var result = await _mediator.Send(new AddBasketItemCommand(
+        var result = await _basketService.AddItemAsync(
             resolvedBuyerId,
             request.ProductId,
             request.ProductName ?? request.ProductId,
             request.Quantity < 1 ? 1 : request.Quantity,
             request.InventoryItemId,
             request.UnitPrice,
-            request.Currency), cancellationToken);
+            request.Currency,
+            cancellationToken);
         if (!result.Success)
             return BadRequest(new { error = result.ErrorMessage });
         return Ok(MapToDto(result.Basket!));
@@ -96,7 +95,7 @@ public class BasketController : ControllerBase
     public async Task<IActionResult> UpdateItem(string productId, [FromQuery] string? buyerId, [FromBody] UpdateBasketItemRequest request, CancellationToken cancellationToken)
     {
         var resolvedBuyerId = GetOrCreateBuyerId(buyerId);
-        var result = await _mediator.Send(new UpdateBasketItemCommand(resolvedBuyerId, productId, request.Quantity), cancellationToken);
+        var result = await _basketService.UpdateItemAsync(resolvedBuyerId, productId, request.Quantity, cancellationToken);
         if (!result.Success)
             return NotFound(new { error = result.ErrorMessage });
         return Ok(MapToDto(result.Basket!));
@@ -108,7 +107,7 @@ public class BasketController : ControllerBase
     public async Task<IActionResult> RemoveItem(string productId, [FromQuery] string? buyerId, CancellationToken cancellationToken)
     {
         var resolvedBuyerId = GetOrCreateBuyerId(buyerId);
-        var result = await _mediator.Send(new RemoveBasketItemCommand(resolvedBuyerId, productId), cancellationToken);
+        var result = await _basketService.RemoveItemAsync(resolvedBuyerId, productId, cancellationToken);
         return Ok(MapToDto(result.Basket!));
     }
 
@@ -118,7 +117,7 @@ public class BasketController : ControllerBase
     public async Task<IActionResult> Clear([FromQuery] string? buyerId, CancellationToken cancellationToken)
     {
         var resolvedBuyerId = GetOrCreateBuyerId(buyerId);
-        await _mediator.Send(new ClearBasketCommand(resolvedBuyerId), cancellationToken);
+        await _basketService.ClearAsync(resolvedBuyerId, cancellationToken);
         return NoContent();
     }
 }

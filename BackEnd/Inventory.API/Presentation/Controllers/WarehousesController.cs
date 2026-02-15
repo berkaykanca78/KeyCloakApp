@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Inventory.API.Application.Contracts;
 using Inventory.API.Application.DTOs;
-using Inventory.API.Application.UseCases;
+using Inventory.API.Application.Ports;
 using Inventory.API.Domain.Aggregates;
-using Inventory.API.Domain.Repositories;
 using Shared.Api;
 
 namespace Inventory.API.Presentation.Controllers;
@@ -13,28 +11,18 @@ namespace Inventory.API.Presentation.Controllers;
 [Route("api/warehouses")]
 public class WarehousesController : ControllerBase
 {
-    private readonly IWarehouseRepository _warehouseRepository;
-    private readonly CreateWarehouseUseCase _createWarehouseUseCase;
-    private readonly UpdateWarehouseImageUseCase _updateWarehouseImageUseCase;
-    private readonly IStorageService _storage;
+    private readonly IWarehouseService _warehouseService;
 
-    public WarehousesController(
-        IWarehouseRepository warehouseRepository,
-        CreateWarehouseUseCase createWarehouseUseCase,
-        UpdateWarehouseImageUseCase updateWarehouseImageUseCase,
-        IStorageService storage)
+    public WarehousesController(IWarehouseService warehouseService)
     {
-        _warehouseRepository = warehouseRepository;
-        _createWarehouseUseCase = createWarehouseUseCase;
-        _updateWarehouseImageUseCase = updateWarehouseImageUseCase;
-        _storage = storage;
+        _warehouseService = warehouseService;
     }
 
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<ResultDto<IEnumerable<Warehouse>>>> GetAll(CancellationToken cancellationToken)
     {
-        var list = await _warehouseRepository.GetAllAsync(cancellationToken);
+        var list = await _warehouseService.GetAllAsync(cancellationToken);
         return Ok(ResultDto<IEnumerable<Warehouse>>.Success(list));
     }
 
@@ -42,15 +30,10 @@ public class WarehousesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ResultDto<Warehouse>>> Create([FromBody] CreateWarehouseRequest request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var warehouse = await _createWarehouseUseCase.ExecuteAsync(request.Name, request.Code, cancellationToken);
-            return Ok(ResultDto<Warehouse>.Success(warehouse!, "Depo eklendi."));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ResultDto<Warehouse>.Failure(ex.Message));
-        }
+        var warehouse = await _warehouseService.CreateAsync(request, cancellationToken);
+        if (warehouse == null)
+            return BadRequest(ResultDto<Warehouse>.Failure("Depo adı geçersiz veya eklenemedi."));
+        return Ok(ResultDto<Warehouse>.Success(warehouse, "Depo eklendi."));
     }
 
     [Authorize(Roles = "Admin")]
@@ -68,46 +51,30 @@ public class WarehousesController : ControllerBase
         if (!allowed.Contains(contentType))
             return BadRequest(ResultDto<object>.Failure($"Sadece resim dosyaları kabul edilir. Gelen: {contentType}"));
 
-        var warehouse = await _warehouseRepository.GetByIdAsync(id, cancellationToken);
-        if (warehouse == null)
-            return NotFound(ResultDto<object>.Failure("Depo bulunamadı."));
-
-        var ext = string.IsNullOrEmpty(Path.GetExtension(file.FileName)) ? ".jpg" : Path.GetExtension(file.FileName);
-        var key = $"warehouses/{id:N}/{Guid.NewGuid():N}{ext}";
-
-        try
+        await using var stream = file.OpenReadStream();
+        var (success, imageKey, error) = await _warehouseService.UploadImageAsync(id, stream, contentType, file.FileName, cancellationToken);
+        if (!success)
         {
-            await using var stream = file.OpenReadStream();
-            await _storage.UploadAsync(key, stream, contentType, cancellationToken);
+            if (error?.Contains("bulunamadı") == true)
+                return NotFound(ResultDto<object>.Failure(error));
+            return StatusCode(500, ResultDto<object>.Failure(error ?? "Yükleme hatası."));
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ResultDto<object>.Failure($"MinIO/S3 yükleme hatası: {ex.Message}"));
-        }
-
-        var updated = await _updateWarehouseImageUseCase.ExecuteAsync(id, key, cancellationToken);
-        if (!updated)
-            return StatusCode(500, ResultDto<object>.Failure("Resim S3'e yüklendi ama veritabanına ImageKey yazılamadı."));
-        return Ok(ResultDto<object>.Success(new { imageKey = key }, "Depo resmi yüklendi."));
+        return Ok(ResultDto<object>.Success(new { imageKey }, "Depo resmi yüklendi."));
     }
 
     [HttpGet("{id:guid}/image")]
     public async Task<ActionResult<ResultDto<object>>> GetImageUrl(Guid id, [FromQuery] int expirySeconds = 3600, CancellationToken cancellationToken = default)
     {
-        var warehouse = await _warehouseRepository.GetByIdAsync(id, cancellationToken);
-        if (warehouse == null || string.IsNullOrEmpty(warehouse.ImageKey))
-            return NotFound(ResultDto<object>.Failure("Depo veya resim bulunamadı."));
-        var url = await _storage.GetDownloadUrlAsync(warehouse.ImageKey, expirySeconds, cancellationToken);
+        var (url, error) = await _warehouseService.GetImageUrlAsync(id, expirySeconds, cancellationToken);
+        if (url == null)
+            return NotFound(ResultDto<object>.Failure(error ?? "Depo veya resim bulunamadı."));
         return Ok(ResultDto<object>.Success(new { url }));
     }
 
     [HttpGet("{id:guid}/image/stream")]
     public async Task<IActionResult> GetImageStream(Guid id, CancellationToken cancellationToken = default)
     {
-        var warehouse = await _warehouseRepository.GetByIdAsync(id, cancellationToken);
-        if (warehouse == null || string.IsNullOrEmpty(warehouse.ImageKey))
-            return NotFound();
-        var (stream, contentType) = await _storage.GetWithContentTypeAsync(warehouse.ImageKey, cancellationToken);
+        var (stream, contentType) = await _warehouseService.GetImageStreamAsync(id, cancellationToken);
         if (stream == null)
             return NotFound();
         return File(stream, contentType ?? "image/jpeg", enableRangeProcessing: true);

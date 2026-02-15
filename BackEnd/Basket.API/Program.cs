@@ -1,4 +1,6 @@
 using Microsoft.OpenApi.Models;
+using Basket.API.Application.Ports;
+using Basket.API.Application.Services;
 using Basket.API.Domain.Repositories;
 using Basket.API.Infrastructure.Persistence;
 using StackExchange.Redis;
@@ -12,6 +14,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     return ConnectionMultiplexer.Connect(config);
 });
 builder.Services.AddScoped<IBasketRepository, BasketRedisRepository>();
+builder.Services.AddScoped<IBasketService, BasketService>();
 
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>

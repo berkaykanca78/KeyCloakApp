@@ -1,3 +1,5 @@
+using Ordering.API.Domain.ValueObjects;
+
 namespace Ordering.API.Domain.Aggregates;
 
 /// <summary>
@@ -18,7 +20,7 @@ public class Order
 
     private Order() { }
 
-    public static (Order Order, Domain.Events.OrderPlacedDomainEvent DomainEvent) Place(Guid customerId, Guid productId, int quantity, decimal unitPrice, string createdBy)
+    public static (Order Order, Domain.Events.OrderPlacedDomainEvent DomainEvent) Place(Guid customerId, Guid productId, OrderQuantity quantity, decimal unitPrice, string createdBy)
     {
         if (string.IsNullOrWhiteSpace(createdBy))
             createdBy = "unknown";
@@ -29,7 +31,7 @@ public class Order
             Id = Guid.NewGuid(),
             CustomerId = customerId,
             ProductId = productId,
-            Quantity = quantity,
+            Quantity = quantity.Value,
             UnitPrice = unitPrice,
             CreatedBy = createdBy,
             CreatedAt = DateTime.UtcNow
@@ -39,7 +41,7 @@ public class Order
         {
             OrderId = order.Id,
             ProductId = productId,
-            Quantity = quantity
+            Quantity = quantity.Value
         };
 
         return (order, domainEvent);

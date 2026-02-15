@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MediatR;
 using Ordering.API.Domain.Aggregates;
+using Ordering.API.Domain.ValueObjects;
 using Ordering.API.Infrastructure.Persistence;
 using Ordering.API.Infrastructure.Services;
 using Shared.Events.IntegrationEvents;
@@ -32,7 +33,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Cre
         if (!result.isAvailable)
             return new CreateOrderCommandResult(null, false, result.message ?? "Yetersiz stok.");
 
-        var (order, _) = Order.Place(request.CustomerId, request.ProductId, request.Quantity, request.UnitPrice, request.CreatedBy);
+        var quantity = new OrderQuantity(request.Quantity);
+        var (order, _) = Order.Place(request.CustomerId, request.ProductId, quantity, request.UnitPrice, request.CreatedBy);
 
         var correlationId = Guid.NewGuid();
         var evt = new OrderPlacedEvent

@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Inventory.API.Application.DTOs;
-using Inventory.API.Application.UseCases;
+using Inventory.API.Application.Ports;
 using Inventory.API.Domain.Aggregates;
-using Inventory.API.Domain.Repositories;
 using Shared.Api;
 
 namespace Inventory.API.Presentation.Controllers;
@@ -12,25 +11,18 @@ namespace Inventory.API.Presentation.Controllers;
 [Route("api/products")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductRepository _productRepository;
-    private readonly IProductDiscountRepository _productDiscountRepository;
-    private readonly CreateProductWithWarehousesUseCase _createProductWithWarehousesUseCase;
+    private readonly IProductService _productService;
 
-    public ProductsController(
-        IProductRepository productRepository,
-        IProductDiscountRepository productDiscountRepository,
-        CreateProductWithWarehousesUseCase createProductWithWarehousesUseCase)
+    public ProductsController(IProductService productService)
     {
-        _productRepository = productRepository;
-        _productDiscountRepository = productDiscountRepository;
-        _createProductWithWarehousesUseCase = createProductWithWarehousesUseCase;
+        _productService = productService;
     }
 
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<ResultDto<IEnumerable<Product>>>> GetAll(CancellationToken cancellationToken)
     {
-        var list = await _productRepository.GetAllAsync(cancellationToken);
+        var list = await _productService.GetAllAsync(cancellationToken);
         return Ok(ResultDto<IEnumerable<Product>>.Success(list));
     }
 
@@ -38,17 +30,7 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ResultDto<Product>>> Create([FromBody] CreateProductRequest request, CancellationToken cancellationToken)
     {
-        if (request.WarehouseIds == null || request.WarehouseIds.Count == 0)
-            return BadRequest(ResultDto<Product>.Failure("En az bir depo seçmelisiniz. Deposu olmayan ürün eklenemez."));
-
-        var (product, error) = await _createProductWithWarehousesUseCase.ExecuteAsync(
-            request.Name,
-            request.UnitPrice,
-            request.Currency ?? "TRY",
-            request.ImageKey,
-            request.WarehouseIds,
-            request.InitialQuantity,
-            cancellationToken);
+        var (product, error) = await _productService.CreateAsync(request, cancellationToken);
 
         if (error != null)
             return BadRequest(ResultDto<Product>.Failure(error));
@@ -63,24 +45,15 @@ public class ProductsController : ControllerBase
     [HttpPost("discounts")]
     public async Task<ActionResult<ResultDto<ProductDiscount>>> CreateDiscount([FromBody] CreateProductDiscountRequest request, CancellationToken cancellationToken = default)
     {
-        var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
-        if (product == null)
-            return NotFound(ResultDto<ProductDiscount>.Failure("Ürün bulunamadı."));
-        try
+        var (discount, error) = await _productService.CreateDiscountAsync(request, cancellationToken);
+        if (error != null)
         {
-            var discount = ProductDiscount.Create(
-                request.ProductId,
-                request.DiscountPercent,
-                request.StartAt,
-                request.EndAt,
-                request.Name);
-            _productDiscountRepository.Add(discount);
-            await _productDiscountRepository.SaveChangesAsync(cancellationToken);
-            return Ok(ResultDto<ProductDiscount>.Success(discount, "İndirim eklendi."));
+            if (error.Contains("bulunamadı"))
+                return NotFound(ResultDto<ProductDiscount>.Failure(error));
+            return BadRequest(ResultDto<ProductDiscount>.Failure(error));
         }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ResultDto<ProductDiscount>.Failure(ex.Message));
-        }
+        if (discount == null)
+            return BadRequest(ResultDto<ProductDiscount>.Failure("İndirim eklenemedi."));
+        return Ok(ResultDto<ProductDiscount>.Success(discount, "İndirim eklendi."));
     }
 }

@@ -1,3 +1,5 @@
+using Inventory.API.Domain.ValueObjects;
+
 namespace Inventory.API.Domain.Aggregates;
 
 /// <summary>
@@ -16,11 +18,11 @@ public class Warehouse
 
     public static Warehouse Create(string name, string? code = null, string? imageKey = null)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Depo adı boş olamaz.", nameof(name));
+        var location = new Location(name);
         return new Warehouse
         {
             Id = Guid.NewGuid(),
-            Name = name.Trim(),
+            Name = location.Value,
             Code = string.IsNullOrWhiteSpace(code) ? null : code.Trim(),
             ImageKey = imageKey
         };
@@ -30,7 +32,7 @@ public class Warehouse
 
     public void SetName(string name)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Depo adı boş olamaz.", nameof(name));
-        Name = name.Trim();
+        var location = new Location(name);
+        Name = location.Value;
     }
 }

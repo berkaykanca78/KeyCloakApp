@@ -1,10 +1,7 @@
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Inventory.API.Application.Commands;
-using Inventory.API.Application.Contracts;
 using Inventory.API.Application.DTOs;
-using Inventory.API.Application.Queries;
+using Inventory.API.Application.Ports;
 using Inventory.API.Domain.Aggregates;
 using Shared.Api;
 
@@ -14,19 +11,17 @@ namespace Inventory.API.Presentation.Controllers;
 [Route("api/inventory")]
 public class InventoryController : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly IStorageService _storage;
+    private readonly IInventoryService _inventoryService;
 
-    public InventoryController(IMediator mediator, IStorageService storage)
+    public InventoryController(IInventoryService inventoryService)
     {
-        _mediator = mediator;
-        _storage = storage;
+        _inventoryService = inventoryService;
     }
 
     [HttpGet("public")]
     public async Task<ActionResult<ResultDto<object>>> GetPublic(CancellationToken cancellationToken)
     {
-        var response = await _mediator.Send(new GetInventoryPublicQuery(), cancellationToken);
+        var response = await _inventoryService.GetPublicAsync(cancellationToken);
         return Ok(ResultDto<object>.Success(new { Message = response.Message, Items = response.Items, Time = response.Time }));
     }
 
@@ -34,7 +29,7 @@ public class InventoryController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ResultDto<IEnumerable<InventoryItem>>>> GetAll(CancellationToken cancellationToken)
     {
-        var list = await _mediator.Send(new GetAllInventoryQuery(), cancellationToken);
+        var list = await _inventoryService.GetAllAsync(cancellationToken);
         return Ok(ResultDto<IEnumerable<InventoryItem>>.Success(list));
     }
 
@@ -42,7 +37,7 @@ public class InventoryController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ResultDto<InventoryItem>>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var item = await _mediator.Send(new GetInventoryByIdQuery(id), cancellationToken);
+        var item = await _inventoryService.GetByIdAsync(id, cancellationToken);
         if (item == null)
             return NotFound(ResultDto<InventoryItem>.Failure("Ürün bulunamadı."));
         return Ok(ResultDto<InventoryItem>.Success(item));
@@ -54,7 +49,7 @@ public class InventoryController : ControllerBase
         [FromQuery] int quantity,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new CheckAvailabilityQuery(productId, quantity), cancellationToken);
+        var result = await _inventoryService.CheckAvailabilityAsync(productId, quantity, cancellationToken);
         var response = new AvailabilityResponse(
             result.IsAvailable,
             result.ProductId,
@@ -70,24 +65,17 @@ public class InventoryController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ResultDto<InventoryItem>>> UpdateQuantity(Guid id, [FromBody] UpdateQuantityRequest request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var item = await _mediator.Send(new UpdateQuantityCommand(id, request.Quantity), cancellationToken);
-            if (item == null)
-                return NotFound(ResultDto<InventoryItem>.Failure("Ürün bulunamadı."));
-            return Ok(ResultDto<InventoryItem>.Success(item, "Stok güncellendi."));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ResultDto<InventoryItem>.Failure(ex.Message));
-        }
+        var item = await _inventoryService.UpdateQuantityAsync(id, request.Quantity, cancellationToken);
+        if (item == null)
+            return NotFound(ResultDto<InventoryItem>.Failure("Ürün bulunamadı."));
+        return Ok(ResultDto<InventoryItem>.Success(item, "Stok güncellendi."));
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<ResultDto<InventoryItem>>> Create([FromBody] CreateInventoryRequest request, CancellationToken cancellationToken)
     {
-        var item = await _mediator.Send(new CreateInventoryCommand(request.ProductId, request.WarehouseId, request.Quantity), cancellationToken);
+        var item = await _inventoryService.CreateAsync(request.ProductId, request.WarehouseId, request.Quantity, cancellationToken);
         if (item == null)
             return BadRequest(ResultDto<InventoryItem>.Failure("Ürün veya depo bulunamadı. Geçerli ProductId ve WarehouseId kullanın."));
         return Ok(ResultDto<InventoryItem>.Success(item, "Stok kalemi eklendi."));
@@ -107,48 +95,31 @@ public class InventoryController : ControllerBase
         var contentType = file.ContentType ?? "application/octet-stream";
         if (!allowed.Contains(contentType))
             return BadRequest(ResultDto<object>.Failure($"Sadece resim dosyaları kabul edilir. Gelen: {contentType}"));
-        var item = await _mediator.Send(new GetInventoryByIdQuery(id), cancellationToken);
-        if (item == null)
-            return NotFound(ResultDto<object>.Failure("Stok kalemi bulunamadı."));
 
-        var ext = string.IsNullOrEmpty(Path.GetExtension(file.FileName)) ? ".jpg" : Path.GetExtension(file.FileName);
-        var key = $"products/{id:N}/{Guid.NewGuid():N}{ext}";
-
-        try
+        await using var stream = file.OpenReadStream();
+        var (success, imageKey, error) = await _inventoryService.UploadImageAsync(id, stream, contentType, file.FileName, cancellationToken);
+        if (!success)
         {
-            await using var stream = file.OpenReadStream();
-            await _storage.UploadAsync(key, stream, contentType, cancellationToken);
+            if (error?.Contains("bulunamadı") == true)
+                return NotFound(ResultDto<object>.Failure(error));
+            return StatusCode(500, ResultDto<object>.Failure(error ?? "Yükleme hatası."));
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ResultDto<object>.Failure($"MinIO/S3 yükleme hatası: {ex.Message}"));
-        }
-
-        var updated = await _mediator.Send(new UpdateInventoryImageCommand(id, key), cancellationToken);
-        if (!updated)
-            return StatusCode(500, ResultDto<object>.Failure("Resim S3'e yüklendi ama ürün (Product) ImageKey yazılamadı."));
-        return Ok(ResultDto<object>.Success(new { imageKey = key }, "Resim yüklendi (ürüne kaydedildi)."));
+        return Ok(ResultDto<object>.Success(new { imageKey }, "Resim yüklendi (ürüne kaydedildi)."));
     }
 
     [HttpGet("{id:guid}/image/url")]
     public async Task<ActionResult<ResultDto<object>>> GetImageUrl(Guid id, [FromQuery] int expirySeconds = 3600, CancellationToken cancellationToken = default)
     {
-        var item = await _mediator.Send(new GetInventoryByIdQuery(id), cancellationToken);
-        var imageKey = item?.Product?.ImageKey;
-        if (item == null || string.IsNullOrEmpty(imageKey))
-            return NotFound(ResultDto<object>.Failure("Ürün veya resim bulunamadı."));
-        var url = await _storage.GetDownloadUrlAsync(imageKey, expirySeconds, cancellationToken);
+        var (url, error) = await _inventoryService.GetImageUrlAsync(id, expirySeconds, cancellationToken);
+        if (url == null)
+            return NotFound(ResultDto<object>.Failure(error ?? "Ürün veya resim bulunamadı."));
         return Ok(ResultDto<object>.Success(new { url }));
     }
 
     [HttpGet("{id:guid}/image")]
     public async Task<IActionResult> GetImage(Guid id, CancellationToken cancellationToken = default)
     {
-        var item = await _mediator.Send(new GetInventoryByIdQuery(id), cancellationToken);
-        var imageKey = item?.Product?.ImageKey;
-        if (item == null || string.IsNullOrEmpty(imageKey))
-            return NotFound();
-        var (stream, contentType) = await _storage.GetWithContentTypeAsync(imageKey, cancellationToken);
+        var (stream, contentType) = await _inventoryService.GetImageStreamAsync(id, cancellationToken);
         if (stream == null)
             return NotFound();
         return File(stream, contentType ?? "image/jpeg", enableRangeProcessing: true);

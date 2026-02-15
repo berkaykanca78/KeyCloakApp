@@ -2,8 +2,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ordering.API.Application.DTOs;
+using Ordering.API.Application.Ports;
 using Ordering.API.Domain.Aggregates;
-using Ordering.API.Domain.Repositories;
 using Shared.Api;
 
 namespace Ordering.API.Presentation.Controllers;
@@ -12,36 +12,18 @@ namespace Ordering.API.Presentation.Controllers;
 [Route("api/customers")]
 public class CustomersController : ControllerBase
 {
-    private readonly ICustomerRepository _customerRepository;
+    private readonly ICustomerService _customerService;
 
-    public CustomersController(ICustomerRepository customerRepository) => _customerRepository = customerRepository;
+    public CustomersController(ICustomerService customerService) => _customerService = customerService;
 
     /// <summary>Kayıt sonrası Identity.API veya frontend tarafından müşteri oluşturur (Keycloak sub ile).</summary>
     [HttpPost]
     public async Task<ActionResult<ResultDto<Customer>>> Create([FromBody] CreateCustomerRequest request, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var existing = await _customerRepository.GetByKeycloakSubAsync(request.KeycloakSub, cancellationToken);
-            if (existing != null)
-                return Ok(ResultDto<Customer>.Success(existing, "Müşteri zaten mevcut."));
-
-            var customer = Customer.Create(
-                request.KeycloakSub,
-                request.FirstName,
-                request.LastName,
-                request.Address,
-                request.CityId,
-                request.DistrictId,
-                request.CardLast4);
-            _customerRepository.Add(customer);
-            await _customerRepository.SaveChangesAsync(cancellationToken);
-            return Ok(ResultDto<Customer>.Success(customer, "Müşteri oluşturuldu."));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ResultDto<Customer>.Failure(ex.Message));
-        }
+        var (customer, alreadyExisted) = await _customerService.CreateAsync(request, cancellationToken);
+        if (customer == null)
+            return BadRequest(ResultDto<Customer>.Failure("Geçersiz istek."));
+        return Ok(ResultDto<Customer>.Success(customer, alreadyExisted ? "Müşteri zaten mevcut." : "Müşteri oluşturuldu."));
     }
 
     /// <summary>Giriş yapan kullanıcının müşteri kaydı (sub claim ile).</summary>
@@ -52,7 +34,7 @@ public class CustomersController : ControllerBase
         var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(sub))
             return NotFound(ResultDto<Customer>.Failure("Kullanıcı bilgisi bulunamadı."));
-        var customer = await _customerRepository.GetByKeycloakSubAsync(sub, cancellationToken);
+        var customer = await _customerService.GetByKeycloakSubAsync(sub, cancellationToken);
         if (customer == null)
             return NotFound(ResultDto<Customer>.Failure("Müşteri kaydı bulunamadı. Önce kayıt olun."));
         return Ok(ResultDto<Customer>.Success(customer));
@@ -67,16 +49,12 @@ public class CustomersController : ControllerBase
         if (string.IsNullOrEmpty(sub))
             return Unauthorized(ResultDto<Customer>.Failure("Kullanıcı bilgisi bulunamadı."));
 
-        var existing = await _customerRepository.GetByKeycloakSubAsync(sub, cancellationToken);
-        if (existing != null)
-            return Ok(ResultDto<Customer>.Success(existing, "Müşteri zaten mevcut."));
-
         var firstName = request?.FirstName?.Trim();
         var lastName = request?.LastName?.Trim();
         if (string.IsNullOrEmpty(firstName))
-            firstName = User.FindFirst("given_name")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? "";
+            firstName = User.FindFirst("given_name")?.Value ?? User.FindFirst(ClaimTypes.GivenName)?.Value ?? "";
         if (string.IsNullOrEmpty(lastName))
-            lastName = User.FindFirst("family_name")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? "";
+            lastName = User.FindFirst("family_name")?.Value ?? User.FindFirst(ClaimTypes.Surname)?.Value ?? "";
         if (string.IsNullOrEmpty(firstName) && string.IsNullOrEmpty(lastName))
         {
             var name = User.FindFirst("name")?.Value ?? User.Identity?.Name ?? "";
@@ -87,16 +65,9 @@ public class CustomersController : ControllerBase
         if (string.IsNullOrEmpty(firstName))
             firstName = "Kullanıcı";
 
-        var customer = Customer.Create(
-            sub,
-            firstName,
-            lastName,
-            request?.Address,
-            request?.CityId,
-            request?.DistrictId,
-            request?.CardLast4);
-        _customerRepository.Add(customer);
-        await _customerRepository.SaveChangesAsync(cancellationToken);
-        return Ok(ResultDto<Customer>.Success(customer, "Müşteri kaydı oluşturuldu."));
+        var (customer, alreadyExisted) = await _customerService.CreateMeAsync(sub, firstName, lastName, request?.Address, request?.CityId, request?.DistrictId, request?.CardLast4, cancellationToken);
+        if (customer == null)
+            return StatusCode(500, ResultDto<Customer>.Failure("Müşteri kaydı oluşturulamadı."));
+        return Ok(ResultDto<Customer>.Success(customer, alreadyExisted ? "Müşteri zaten mevcut." : "Müşteri kaydı oluşturuldu."));
     }
 }

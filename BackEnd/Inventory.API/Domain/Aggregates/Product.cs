@@ -1,3 +1,5 @@
+using Inventory.API.Domain.ValueObjects;
+
 namespace Inventory.API.Domain.Aggregates;
 
 /// <summary>
@@ -18,14 +20,14 @@ public class Product
 
     public static Product Create(string name, decimal unitPrice = 0, string currency = "TRY", string? imageKey = null)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Ürün adı boş olamaz.", nameof(name));
+        var productName = new ProductName(name);
         if (unitPrice < 0) throw new ArgumentException("Fiyat negatif olamaz.", nameof(unitPrice));
         if (string.IsNullOrWhiteSpace(currency)) currency = "TRY";
         var c = currency.Trim().ToUpperInvariant();
         return new Product
         {
             Id = Guid.NewGuid(),
-            Name = name.Trim(),
+            Name = productName.Value,
             ImageKey = imageKey,
             UnitPrice = unitPrice,
             Currency = c.Length >= 3 ? c[..3] : c
@@ -35,8 +37,8 @@ public class Product
     public void SetImageKey(string? imageKey) => ImageKey = imageKey;
     public void SetName(string name)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Ürün adı boş olamaz.", nameof(name));
-        Name = name.Trim();
+        var productName = new ProductName(name);
+        Name = productName.Value;
     }
     public void SetUnitPrice(decimal unitPrice)
     {
