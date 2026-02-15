@@ -37,7 +37,8 @@
 }
 
 .depo-form input[type="text"],
-.depo-form input[type="number"] {
+.depo-form input[type="number"],
+.depo-form select {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -100,11 +101,6 @@
 .state-error {
   background: var(--color-error-bg);
   color: var(--color-error);
-}
-
-.state-warn {
-  background: #fef3c7;
-  color: #92400e;
 }
 
 .back-link {

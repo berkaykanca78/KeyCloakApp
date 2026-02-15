@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InventoryService } from '../../core/api/inventory.service';
+import { InventoryService } from '../../../core/api/inventory.service';
 
 @Component({
   selector: 'app-product-create-page',
@@ -24,9 +24,12 @@ export class ProductCreatePageComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly createError = signal<string | null>(null);
   protected readonly warehouses = signal<{ id: string; name: string }[]>([]);
+  protected readonly selectedImageFile = signal<File | null>(null);
 
   protected form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
+    unitPrice: [0, [Validators.required, Validators.min(0)]],
+    currency: ['TRY', []],
     warehouseIds: [[] as string[], [Validators.required]],
     initialQuantity: [0, [Validators.min(0)]],
   });
@@ -49,6 +52,11 @@ export class ProductCreatePageComponent implements OnInit {
     return this.form.controls.warehouseIds.value.includes(id);
   }
 
+  protected onImageFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedImageFile.set(input.files?.[0] ?? null);
+  }
+
   protected onSubmit(): void {
     if (this.form.invalid || this.saving()) return;
     const ids = this.form.controls.warehouseIds.value.filter(Boolean);
@@ -59,22 +67,54 @@ export class ProductCreatePageComponent implements OnInit {
     this.createError.set(null);
     this.saving.set(true);
 
-    const { name, initialQuantity } = this.form.getRawValue();
+    const { name, unitPrice, currency, initialQuantity } = this.form.getRawValue();
+    const imageFile = this.selectedImageFile();
 
     this.inventory
       .createProduct({
         name,
+        unitPrice: unitPrice ?? 0,
+        currency: currency ?? 'TRY',
         warehouseIds: ids,
         initialQuantity: initialQuantity ?? 0,
       })
       .subscribe({
         next: (res) => {
-          this.saving.set(false);
-          if (res.data) {
-            this.router.navigate(['/dashboard/urunler']);
+          if (!res.data) {
+            this.saving.set(false);
+            this.createError.set(res.message ?? 'Ürün eklenemedi.');
             return;
           }
-          this.createError.set(res.message ?? 'Ürün eklenemedi.');
+          const productId = res.data.id;
+          if (imageFile) {
+            this.inventory.getAll().subscribe({
+              next: (items) => {
+                const firstItem = items.find((i) => i.productId === productId);
+                if (firstItem) {
+                  this.inventory.uploadImage(firstItem.id, imageFile).subscribe({
+                    next: () => {
+                      this.saving.set(false);
+                      this.router.navigate(['/dashboard/products']);
+                    },
+                    error: () => {
+                      this.saving.set(false);
+                      this.router.navigate(['/dashboard/products']);
+                    },
+                  });
+                } else {
+                  this.saving.set(false);
+                  this.router.navigate(['/dashboard/products']);
+                }
+              },
+              error: () => {
+                this.saving.set(false);
+                this.router.navigate(['/dashboard/products']);
+              },
+            });
+          } else {
+            this.saving.set(false);
+            this.router.navigate(['/dashboard/products']);
+          }
         },
         error: (err) => {
           this.saving.set(false);

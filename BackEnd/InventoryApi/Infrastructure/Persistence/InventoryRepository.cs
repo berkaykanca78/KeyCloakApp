@@ -35,12 +35,4 @@ public class InventoryRepository : IInventoryRepository
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => _db.SaveChangesAsync(cancellationToken);
-
-    public async Task<bool> UpdateImageKeyAsync(Guid id, string imageKey, CancellationToken cancellationToken = default)
-    {
-        var count = await _db.InventoryItems
-            .Where(i => i.Id == id)
-            .ExecuteUpdateAsync(s => s.SetProperty(i => i.ImageKey, imageKey), cancellationToken);
-        return count > 0;
-    }
 }

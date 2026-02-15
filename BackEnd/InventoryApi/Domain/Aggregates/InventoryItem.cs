@@ -3,7 +3,7 @@ using InventoryApi.Domain.ValueObjects;
 namespace InventoryApi.Domain.Aggregates;
 
 /// <summary>
-/// DDD Aggregate Root: Stok kalemi. Product ve Warehouse ile ilişkili; Guid PK.
+/// DDD Aggregate Root: Stok kalemi. Product ve Warehouse ile ilişkili; Guid PK. Ürün resmi Product.ImageKey'de tutulur.
 /// </summary>
 public class InventoryItem
 {
@@ -11,23 +11,20 @@ public class InventoryItem
     public Guid ProductId { get; private set; }
     public Guid WarehouseId { get; private set; }
     public int Quantity { get; private set; }
-    /// <summary>Stok kalemi özel resim (opsiyonel); yoksa Product.ImageKey kullanılır.</summary>
-    public string? ImageKey { get; private set; }
 
     public Product? Product { get; private set; }
     public Warehouse? Warehouse { get; private set; }
 
     private InventoryItem() { }
 
-    public static InventoryItem Create(Guid productId, Guid warehouseId, StockQuantity quantity, string? imageKey = null)
+    public static InventoryItem Create(Guid productId, Guid warehouseId, StockQuantity quantity)
     {
         return new InventoryItem
         {
             Id = Guid.NewGuid(),
             ProductId = productId,
             WarehouseId = warehouseId,
-            Quantity = quantity.Value,
-            ImageKey = imageKey
+            Quantity = quantity.Value
         };
     }
 
@@ -40,5 +37,4 @@ public class InventoryItem
     }
 
     public void SetQuantity(StockQuantity quantity) => Quantity = quantity.Value;
-    public void SetImageKey(string? imageKey) => ImageKey = imageKey;
 }

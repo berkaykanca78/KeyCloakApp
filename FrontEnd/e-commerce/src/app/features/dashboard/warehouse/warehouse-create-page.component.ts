@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InventoryService } from '../../core/api/inventory.service';
+import { InventoryService } from '../../../core/api/inventory.service';
 @Component({
   selector: 'app-warehouse-create-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,7 +52,7 @@ export class WarehouseCreatePageComponent {
           this.inventory.uploadWarehouseImage(res.data.id, file).subscribe({
             next: () => {
               this.saving.set(false);
-              this.router.navigate(['/dashboard/depo']);
+              this.router.navigate(['/dashboard/warehouse']);
             },
             error: (err) => {
               this.saving.set(false);
@@ -61,7 +61,7 @@ export class WarehouseCreatePageComponent {
           });
         } else {
           this.saving.set(false);
-          this.router.navigate(['/dashboard/depo']);
+          this.router.navigate(['/dashboard/warehouse']);
         }
       },
       error: (err) => {

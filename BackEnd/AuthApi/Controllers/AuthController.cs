@@ -138,7 +138,7 @@ public class AuthController : ControllerBase
                 cardLast4 = request.CardLast4
             };
             var content = new StringContent(JsonSerializer.Serialize(customerPayload), System.Text.Encoding.UTF8, "application/json");
-            var response = await client.PostAsync($"{orderApiBase}/customers", content, cancellationToken);
+            var response = await client.PostAsync($"{orderApiBase}/api/customers", content, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 _logger.LogWarning("Keycloak user created but OrderApi Customer failed: {Status}", response.StatusCode);
         }

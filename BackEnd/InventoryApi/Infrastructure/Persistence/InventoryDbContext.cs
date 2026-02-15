@@ -16,6 +16,7 @@ public class InventoryDbContext : DbContext
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<ProductDiscount> ProductDiscounts => Set<ProductDiscount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,18 @@ public class InventoryDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
             e.Property(x => x.ImageKey).HasMaxLength(500);
+            e.Property(x => x.UnitPrice).HasPrecision(18, 2);
+            e.Property(x => x.Currency).HasMaxLength(3).IsRequired();
+        });
+
+        modelBuilder.Entity<ProductDiscount>(e =>
+        {
+            e.ToTable("ProductDiscounts");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.DiscountPercent).HasPrecision(5, 2);
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.ProductId, x.StartAt, x.EndAt });
         });
 
         modelBuilder.Entity<Warehouse>(e =>
@@ -40,7 +53,6 @@ public class InventoryDbContext : DbContext
         {
             e.ToTable("InventoryItems");
             e.HasKey(x => x.Id);
-            e.Property(x => x.ImageKey).HasMaxLength(500);
             e.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Warehouse).WithMany().HasForeignKey(x => x.WarehouseId).OnDelete(DeleteBehavior.Restrict);
         });

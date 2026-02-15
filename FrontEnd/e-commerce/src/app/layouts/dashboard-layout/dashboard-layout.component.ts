@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
@@ -11,8 +11,19 @@ import { AuthService } from '../../core/auth/auth.service';
 })
 export class DashboardLayoutComponent {
   protected readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  protected readonly sidebarOpen = signal(true);
+
+  protected toggleSidebar(): void {
+    this.sidebarOpen.update((v) => !v);
+  }
+
+  protected closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
 
   protected logout(): void {
     this.auth.logout();
+    this.router.navigate(['/']);
   }
 }

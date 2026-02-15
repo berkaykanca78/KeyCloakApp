@@ -9,7 +9,6 @@
       <span class="hamburger"></span>
     </button>
     <nav class="nav" [class.nav--open]="menuOpen()" aria-label="Ana menü">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Ana Sayfa</a>
       <a routerLink="/urunler" routerLinkActive="active" (click)="closeMenu()">Ürünler</a>
       @if (auth.isAuthenticated()) {
         <a routerLink="/siparislerim" routerLinkActive="active" (click)="closeMenu()">Siparişlerim</a>

@@ -6,8 +6,8 @@ import {
   computed,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { OrderService } from '../../core/api/order.service';
-import type { Order } from '../../core/api/api-types';
+import { OrderService } from '../../../core/api/order.service';
+import type { Order } from '../../../core/api/api-types';
 
 interface CustomerRow {
   customerName: string;
@@ -16,13 +16,13 @@ interface CustomerRow {
 }
 
 @Component({
-  selector: 'app-musteriler-page',
+  selector: 'app-customers-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe],
-  templateUrl: './musteriler-page.component.html',
-  styleUrl: './musteriler-page.component.scss',
+  templateUrl: './customers-page.component.html',
+  styleUrl: './customers-page.component.scss',
 })
-export class MusterilerPageComponent {
+export class CustomersPageComponent {
   private readonly orderService = inject(OrderService);
 
   protected readonly loading = signal(true);

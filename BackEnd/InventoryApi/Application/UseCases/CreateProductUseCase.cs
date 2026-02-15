@@ -9,9 +9,9 @@ public class CreateProductUseCase
 
     public CreateProductUseCase(IProductRepository repository) => _repository = repository;
 
-    public async Task<Product?> ExecuteAsync(string name, string? imageKey, CancellationToken cancellationToken = default)
+    public async Task<Product?> ExecuteAsync(string name, decimal unitPrice = 0, string currency = "TRY", string? imageKey = null, CancellationToken cancellationToken = default)
     {
-        var product = Product.Create(name, imageKey);
+        var product = Product.Create(name, unitPrice, currency, imageKey);
         _repository.Add(product);
         await _repository.SaveChangesAsync(cancellationToken);
         return product;

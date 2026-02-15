@@ -1,7 +1,7 @@
 namespace OrderApi.Domain.Aggregates;
 
 /// <summary>
-/// DDD Aggregate Root: Sipariş. Guid PK; CustomerId ve ProductId FK.
+/// DDD Aggregate Root: Sipariş. Guid PK; CustomerId ve ProductId FK. UnitPrice sipariş anındaki birim fiyat.
 /// </summary>
 public class Order
 {
@@ -9,6 +9,8 @@ public class Order
     public Guid CustomerId { get; private set; }
     public Guid ProductId { get; private set; }
     public int Quantity { get; private set; }
+    /// <summary>Sipariş anındaki birim fiyat (indirimli veya liste fiyatı).</summary>
+    public decimal UnitPrice { get; private set; }
     public string CreatedBy { get; private set; } = string.Empty;
     public DateTime CreatedAt { get; private set; }
 
@@ -16,10 +18,11 @@ public class Order
 
     private Order() { }
 
-    public static (Order Order, Domain.Events.OrderPlacedDomainEvent DomainEvent) Place(Guid customerId, Guid productId, int quantity, string createdBy)
+    public static (Order Order, Domain.Events.OrderPlacedDomainEvent DomainEvent) Place(Guid customerId, Guid productId, int quantity, decimal unitPrice, string createdBy)
     {
         if (string.IsNullOrWhiteSpace(createdBy))
             createdBy = "unknown";
+        if (unitPrice < 0) unitPrice = 0;
 
         var order = new Order
         {
@@ -27,6 +30,7 @@ public class Order
             CustomerId = customerId,
             ProductId = productId,
             Quantity = quantity,
+            UnitPrice = unitPrice,
             CreatedBy = createdBy,
             CreatedAt = DateTime.UtcNow
         };

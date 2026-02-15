@@ -8,7 +8,7 @@
     <header class="page-header">
       <h1 id="detail-heading">{{ item()!.product?.name ?? 'Stok' }} – Stok detayı</h1>
       <p class="meta">Depo: {{ item()!.warehouse?.name ?? '-' }}</p>
-      @if (item()!.imageKey || item()!.product?.imageKey) {
+      @if (item()!.product?.imageKey) {
         <img
           [src]="imageUrl()"
           alt="{{ item()!.product?.name ?? 'Ürün' }} resmi"

@@ -6,17 +6,17 @@ import {
   computed,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { OrderService } from '../../core/api/order.service';
-import type { Order } from '../../core/api/api-types';
+import { OrderService } from '../../../core/api/order.service';
+import type { Order } from '../../../core/api/api-types';
 
 @Component({
-  selector: 'app-siparisler-page',
+  selector: 'app-orders-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe],
-  templateUrl: './siparisler-page.component.html',
-  styleUrl: './siparisler-page.component.scss',
+  templateUrl: './orders-page.component.html',
+  styleUrl: './orders-page.component.scss',
 })
-export class SiparislerPageComponent {
+export class OrdersPageComponent {
   private readonly orderService = inject(OrderService);
 
   protected readonly loading = signal(true);

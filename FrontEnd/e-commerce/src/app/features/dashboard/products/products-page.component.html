@@ -1,0 +1,93 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <h1 class="page-title">Ürünler</h1>
+    <p class="page-desc">Tüm ürünler (stok bilgisi ile). Fiyat ve indirimli fiyat anlık gösterilir.</p>
+    <a [routerLink]="['/dashboard/products/add']" class="btn btn-primary">+ Ürün ekle</a>
+  </header>
+
+  <!-- İndirim ekle -->
+  <section class="card discount-section" aria-labelledby="discount-heading">
+    <h2 id="discount-heading" class="section-title">İndirim ekle</h2>
+    <form [formGroup]="discountForm" (ngSubmit)="onAddDiscount()" class="discount-form">
+      <label for="discount-product">Ürün</label>
+      <select id="discount-product" formControlName="productId">
+        <option value="">Seçiniz</option>
+        @for (p of products(); track p.id) {
+          <option [value]="p.id">{{ p.name }}</option>
+        }
+      </select>
+      <label for="discount-percent">İndirim yüzdesi (%)</label>
+      <input id="discount-percent" type="number" formControlName="discountPercent" min="1" max="100" step="0.5" />
+      <label for="discount-start">Başlangıç tarihi</label>
+      <input id="discount-start" type="datetime-local" formControlName="startAt" />
+      <label for="discount-end">Bitiş tarihi</label>
+      <input id="discount-end" type="datetime-local" formControlName="endAt" />
+      <label for="discount-name">İndirim adı (opsiyonel)</label>
+      <input id="discount-name" type="text" formControlName="name" placeholder="Örn. Yaz İndirimi" />
+      @if (discountError()) {
+        <p class="msg error">{{ discountError() }}</p>
+      }
+      @if (discountSuccess()) {
+        <p class="msg success">İndirim eklendi. Liste güncellendi.</p>
+      }
+      <button type="submit" class="btn btn-primary" [disabled]="discountForm.invalid || discountSaving() || products().length === 0">
+        {{ discountSaving() ? 'Ekleniyor…' : 'İndirim ekle' }}
+      </button>
+    </form>
+  </section>
+
+  @if (loading()) {
+    <div class="state state-loading">Yükleniyor…</div>
+  } @else if (error()) {
+    <div class="state state-error" role="alert">{{ error() }}</div>
+  } @else if (hasItems()) {
+    <div class="card table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Ürün</th>
+            <th>Liste fiyatı</th>
+            <th>İndirim %</th>
+            <th>İndirimli fiyat</th>
+            <th>Konum</th>
+            <th>Miktar</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr>
+              <td>
+                <div class="cell-product">
+                  <img
+                    [src]="imageUrl(item.id)"
+                    alt=""
+                    class="row-thumb"
+                    (error)="$any($event.target).style.display='none'"
+                  />
+                  <span>{{ item.productName }}</span>
+                </div>
+              </td>
+              <td>{{ formatPrice(item.unitPrice, item.currency) }}</td>
+              <td>
+                @if (hasDiscount(item)) {
+                  <span class="discount-badge">%{{ item.discountPercent }}</span>
+                } @else {
+                  –
+                }
+              </td>
+              <td [class.price-discounted]="hasDiscount(item)">{{ formatDiscountPrice(item) }}</td>
+              <td>{{ item.warehouseName }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>
+                <a [routerLink]="['/dashboard/warehouse', item.id]" class="link">Düzenle</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="state state-empty">Henüz ürün yok. <a routerLink="/dashboard/warehouse/new">Önce depo ekleyin</a>, sonra <a routerLink="/dashboard/products/add">ürün ekleyin</a>.</div>
+  }
+</div>

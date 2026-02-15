@@ -13,7 +13,7 @@ export class OrderService {
   /** Herkese açık bilgi (token gerekmez) */
   getPublic(): Observable<{ message: string }> {
     return this.http
-      .get<ResultDto<{ message: string; time: string }>>(`${this.baseUrl}/orders/public`)
+      .get<ResultDto<{ message: string; time: string }>>(`${this.baseUrl}/api/orders/public`)
       .pipe(
         map((res) => ({
           message: res.data?.message ?? res.message ?? '',
@@ -25,7 +25,7 @@ export class OrderService {
   /** Giriş yapan kullanıcının siparişleri (Admin, User) */
   getMyOrders(): Observable<Order[]> {
     return this.http
-      .get<ResultDto<Order[]>>(`${this.baseUrl}/orders/my`)
+      .get<ResultDto<Order[]>>(`${this.baseUrl}/api/orders/my`)
       .pipe(
         map((res) => (res.data ?? [])),
         catchError(() => of([]))
@@ -35,7 +35,7 @@ export class OrderService {
   /** Tüm siparişler (Admin) */
   getAll(): Observable<Order[]> {
     return this.http
-      .get<ResultDto<Order[]>>(`${this.baseUrl}/orders`)
+      .get<ResultDto<Order[]>>(`${this.baseUrl}/api/orders`)
       .pipe(
         map((res) => (res.data ?? [])),
         catchError(() => of([]))
@@ -44,13 +44,13 @@ export class OrderService {
 
   /** Yeni sipariş oluştur (Admin, User) */
   create(request: CreateOrderRequest): Observable<ResultDto<Order>> {
-    return this.http.post<ResultDto<Order>>(`${this.baseUrl}/orders`, request);
+    return this.http.post<ResultDto<Order>>(`${this.baseUrl}/api/orders`, request);
   }
 
   /** Giriş yapan kullanıcının müşteri kaydı (CustomerId için) */
   getCustomerMe(): Observable<{ id: string } | null> {
     return this.http
-      .get<ResultDto<{ id: string }>>(`${this.baseUrl}/customers/me`)
+      .get<ResultDto<{ id: string }>>(`${this.baseUrl}/api/customers/me`)
       .pipe(
         map((res) => res.data ?? null),
         catchError(() => of(null))
@@ -59,10 +59,10 @@ export class OrderService {
 
   /** Müşteri kaydı yoksa JWT ile oluşturur, varsa döner. Sipariş öncesi kullanın. */
   getCustomerMeOrCreate(): Observable<{ id: string } | null> {
-    return this.http.get<ResultDto<{ id: string }>>(`${this.baseUrl}/customers/me`).pipe(
+    return this.http.get<ResultDto<{ id: string }>>(`${this.baseUrl}/api/customers/me`).pipe(
       map((res) => res.data ?? null),
       catchError(() =>
-        this.http.post<ResultDto<{ id: string }>>(`${this.baseUrl}/customers/me`, {}).pipe(
+        this.http.post<ResultDto<{ id: string }>>(`${this.baseUrl}/api/customers/me`, {}).pipe(
           map((res) => res.data ?? null),
           catchError(() => of(null))
         )

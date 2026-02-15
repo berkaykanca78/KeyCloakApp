@@ -37,6 +37,7 @@ public class OrderDbContext : DbContext
         {
             e.ToTable("Orders");
             e.HasKey(x => x.Id);
+            e.Property(x => x.UnitPrice).HasPrecision(18, 2);
             e.Property(x => x.CreatedBy).HasMaxLength(100).IsRequired();
             e.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
         });

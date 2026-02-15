@@ -8,17 +8,17 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InventoryService } from '../../core/api/inventory.service';
-import type { InventoryItem } from '../../core/api/api-types';
+import { InventoryService } from '../../../core/api/inventory.service';
+import type { InventoryItem } from '../../../core/api/api-types';
 
 @Component({
-  selector: 'app-depo-detail-page',
+  selector: 'app-warehouse-detail-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './depo-detail-page.component.html',
-  styleUrl: './depo-detail-page.component.scss',
+  templateUrl: './warehouse-detail-page.component.html',
+  styleUrl: './warehouse-detail-page.component.scss',
 })
-export class DepoDetailPageComponent {
+export class WarehouseDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly inventory = inject(InventoryService);
   private readonly fb = inject(FormBuilder);
@@ -34,7 +34,6 @@ export class DepoDetailPageComponent {
   protected readonly uploadingImage = signal(false);
   protected readonly selectedImageFile = signal<File | null>(null);
   protected readonly fileInput = viewChild<HTMLInputElement>('fileInput');
-  /** Resim güncellendikten sonra cache kırımı için */
   protected readonly imageVersion = signal(0);
 
   protected readonly id = computed(() => this.route.snapshot.paramMap.get('id') ?? '');

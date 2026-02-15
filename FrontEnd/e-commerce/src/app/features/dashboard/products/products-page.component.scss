@@ -19,6 +19,69 @@
   color: var(--color-text-muted);
 }
 
+.discount-section {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.discount-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.75rem 1.5rem;
+  align-items: end;
+}
+
+.discount-form label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.discount-form input,
+.discount-form select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  width: 100%;
+}
+
+.discount-form .msg {
+  margin: 0;
+  font-size: 0.875rem;
+  grid-column: 1 / -1;
+}
+
+.discount-form .msg.success {
+  color: var(--color-success);
+}
+
+.discount-form .msg.error {
+  color: var(--color-error);
+}
+
+.discount-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-success);
+  background: var(--color-success-bg, rgba(34, 197, 94, 0.15));
+  border-radius: var(--radius-sm);
+}
+
+.price-discounted {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 .card.table-wrap {
   overflow-x: auto;
 }

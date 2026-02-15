@@ -128,8 +128,8 @@ Bundan sonra giriş yapan kullanıcının realm rolleri access token’da `role`
 
 | Kullanıcı | Şifre (örnek) | Rol  | Erişebildiği endpoint’ler                          |
 |-----------|----------------|------|---------------------------------------------------|
-| admin     | admin          | Admin | Tüm yetkili (OrderApi: GET /orders, POST /orders; InventoryApi: GET /inventory, PUT /inventory/{id}) |
-| user      | user           | User  | OrderApi: GET /orders/my, POST /orders; InventoryApi: GET /inventory/{id} |
+| admin     | admin          | Admin | Tüm yetkili (OrderApi: GET /api/orders, POST /api/orders; InventoryApi: GET /api/inventory, PUT /api/inventory/{id}; GET/POST /api/products, /api/warehouses) |
+| user      | user           | User  | OrderApi: GET /api/orders/my, POST /api/orders; InventoryApi: GET /api/inventory/{id} |
 
 ### 3.6 Yeni kullanıcı ekleme (isteğe bağlı)
 
@@ -208,8 +208,8 @@ AuthApi ayarları (`AuthApi/appsettings.json`): **Keycloak:Authority**, **Keyclo
 
 ### 5.2 Token Gerektirmeyen Endpoint (test)
 
-- OrderApi: `GET https://localhost:5198/orders/public`
-- InventoryApi: `GET https://localhost:5131/inventory/public`
+- OrderApi: `GET https://localhost:5198/api/orders/public`
+- InventoryApi: `GET https://localhost:5131/api/inventory/public`
 
 Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 
@@ -219,17 +219,17 @@ Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 
 | Endpoint | İzin verilen roller | Açıklama |
 |----------|----------------------|----------|
-| `GET …/orders` | **Admin** | Tüm siparişler. |
-| `GET …/orders/my` | **Admin, User** | Giriş yapan kullanıcının siparişleri. |
-| `POST …/orders` | **Admin, User** | Yeni sipariş oluştur. |
+| `GET …/api/orders` | **Admin** | Tüm siparişler. |
+| `GET …/api/orders/my` | **Admin, User** | Giriş yapan kullanıcının siparişleri. |
+| `POST …/api/orders` | **Admin, User** | Yeni sipariş oluştur. |
 
 **InventoryApi (Stok):**
 
 | Endpoint | İzin verilen roller | Açıklama |
 |----------|----------------------|----------|
-| `GET …/inventory` | **Admin** | Tüm stok listesi. |
-| `GET …/inventory/{id}` | **Admin, User** | Tek ürün stok bilgisi. |
-| `PUT …/inventory/{id}` | **Admin** | Stok miktarı güncelle. |
+| `GET …/api/inventory` | **Admin** | Tüm stok listesi. |
+| `GET …/api/inventory/{id}` | **Admin, User** | Tek ürün stok bilgisi. |
+| `PUT …/api/inventory/{id}` | **Admin** | Stok miktarı güncelle. |
 
 Bu isteklerde **Authorization** header’ı gerekir. Token’ı **AuthApi**’nin `/api/auth/login` endpoint’inden alın (örn. `admin`/`admin` veya `user`/`user`); aynı token’ı burada kullanın.
 
@@ -243,7 +243,7 @@ PowerShell örneği (PORT’u kendi değerinizle değiştirin):
 ```powershell
 $token = "BURAYA_ACCESS_TOKEN"
 $headers = @{ Authorization = "Bearer $token" }
-Invoke-RestMethod -Uri "https://localhost:5198/orders" -Headers $headers
+Invoke-RestMethod -Uri "https://localhost:5198/api/orders" -Headers $headers
 ```
 
 Aynı token ile hem OrderApi hem InventoryApi’e istek atabilirsiniz; ortak giriş bu şekilde çalışır.

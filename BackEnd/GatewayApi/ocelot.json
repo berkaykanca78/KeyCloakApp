@@ -33,50 +33,82 @@
       "SwaggerKey": "auth"
     },
     {
-      "DownstreamPathTemplate": "/orders",
+      "DownstreamPathTemplate": "/api/orders",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
-      "UpstreamPathTemplate": "/orders",
+      "UpstreamPathTemplate": "/api/orders",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "SwaggerKey": "orders"
     },
     {
-      "DownstreamPathTemplate": "/orders/{everything}",
+      "DownstreamPathTemplate": "/api/orders/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
-      "UpstreamPathTemplate": "/orders/{everything}",
+      "UpstreamPathTemplate": "/api/orders/{everything}",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "SwaggerKey": "orders"
     },
     {
-      "DownstreamPathTemplate": "/customers",
+      "DownstreamPathTemplate": "/api/customers",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
-      "UpstreamPathTemplate": "/customers",
+      "UpstreamPathTemplate": "/api/customers",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "SwaggerKey": "orders"
     },
     {
-      "DownstreamPathTemplate": "/customers/{everything}",
+      "DownstreamPathTemplate": "/api/customers/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
-      "UpstreamPathTemplate": "/customers/{everything}",
+      "UpstreamPathTemplate": "/api/customers/{everything}",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "SwaggerKey": "orders"
     },
     {
-      "DownstreamPathTemplate": "/inventory",
+      "DownstreamPathTemplate": "/api/inventory",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
-      "UpstreamPathTemplate": "/inventory",
+      "UpstreamPathTemplate": "/api/inventory",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "SwaggerKey": "inventory"
     },
     {
-      "DownstreamPathTemplate": "/inventory/{everything}",
+      "DownstreamPathTemplate": "/api/inventory/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
-      "UpstreamPathTemplate": "/inventory/{everything}",
+      "UpstreamPathTemplate": "/api/inventory/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "inventory"
+    },
+    {
+      "DownstreamPathTemplate": "/api/products",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
+      "UpstreamPathTemplate": "/api/products",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "inventory"
+    },
+    {
+      "DownstreamPathTemplate": "/api/products/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
+      "UpstreamPathTemplate": "/api/products/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "inventory"
+    },
+    {
+      "DownstreamPathTemplate": "/api/warehouses",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
+      "UpstreamPathTemplate": "/api/warehouses",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "inventory"
+    },
+    {
+      "DownstreamPathTemplate": "/api/warehouses/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7067 }],
+      "UpstreamPathTemplate": "/api/warehouses/{everything}",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "SwaggerKey": "inventory"
     }

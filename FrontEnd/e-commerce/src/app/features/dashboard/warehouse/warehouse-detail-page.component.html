@@ -3,13 +3,13 @@
     <div class="state state-loading">Yükleniyor…</div>
   } @else if (error() || !item()) {
     <div class="state state-error">{{ error() || 'Ürün bulunamadı.' }}</div>
-    <a routerLink="/dashboard/depo" class="back-link">← Depo listesine dön</a>
+    <a routerLink="/dashboard/warehouse" class="back-link">← Depo listesine dön</a>
   } @else {
-    <a routerLink="/dashboard/depo" class="back-link">← Depo listesine dön</a>
+    <a routerLink="/dashboard/warehouse" class="back-link">← Depo listesine dön</a>
     <header class="page-header">
       <h1 class="page-title">{{ item()!.product?.name ?? 'Stok kalemi' }}</h1>
       <p class="page-meta">Depo: {{ item()!.warehouse?.name ?? '-' }}</p>
-      @if (item()!.imageKey || item()!.product?.imageKey) {
+      @if (item()!.product?.imageKey) {
         <img [src]="imageUrl()" [alt]="item()!.product?.name ?? 'Ürün'" class="product-image" />
       }
     </header>

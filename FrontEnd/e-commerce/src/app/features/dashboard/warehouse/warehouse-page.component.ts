@@ -6,8 +6,8 @@ import {
   computed,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { InventoryService } from '../../core/api/inventory.service';
-import type { InventoryPublicItem } from '../../core/api/api-types';
+import { InventoryService } from '../../../core/api/inventory.service';
+import type { InventoryPublicItem } from '../../../core/api/api-types';
 
 export interface WarehouseItem {
   id: string;
@@ -16,13 +16,13 @@ export interface WarehouseItem {
 }
 
 @Component({
-  selector: 'app-depo-page',
+  selector: 'app-warehouse-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
-  templateUrl: './depo-page.component.html',
-  styleUrl: './depo-page.component.scss',
+  templateUrl: './warehouse-page.component.html',
+  styleUrl: './warehouse-page.component.scss',
 })
-export class DepoPageComponent {
+export class WarehousePageComponent {
   private readonly inventory = inject(InventoryService);
 
   protected readonly loading = signal(true);

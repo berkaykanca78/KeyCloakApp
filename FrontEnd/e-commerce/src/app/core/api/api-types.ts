@@ -6,7 +6,7 @@ export interface ResultDto<T> {
   errors?: readonly string[];
 }
 
-/** Herkese açık ürün özeti (GET /inventory/public) */
+/** Herkese açık ürün özeti (GET /api/inventory/public) – fiyat ve indirim dahil */
 export interface InventoryPublicItem {
   id: string;
   productId: string;
@@ -14,6 +14,10 @@ export interface InventoryPublicItem {
   warehouseName: string;
   inStock: boolean;
   quantity: number;
+  unitPrice?: number;
+  currency?: string;
+  discountPercent?: number | null;
+  priceAfterDiscount?: number | null;
 }
 
 /** Public endpoint yanıtı (Items + Message + Time) */
@@ -23,23 +27,28 @@ export interface InventoryPublicResponse {
   time: string;
 }
 
-/** Tam stok kalemi (GET /inventory, GET /inventory/:id) */
+/** Tam stok kalemi (GET /api/inventory, GET /api/inventory/:id) */
 export interface InventoryItem {
   id: string;
   productId: string;
   warehouseId: string;
   quantity: number;
-  imageKey?: string | null;
-  product?: { id: string; name: string; imageKey?: string | null };
+  product?: {
+    id: string;
+    name: string;
+    imageKey?: string | null;
+    unitPrice?: number;
+    currency?: string;
+  };
   warehouse?: { id: string; name: string; code?: string | null };
 }
 
-/** Stok miktarı güncelleme isteği (PUT /inventory/:id) */
+/** Stok miktarı güncelleme isteği (PUT /api/inventory/:id) */
 export interface UpdateQuantityRequest {
   quantity: number;
 }
 
-/** Stoka yeni ürün ekleme isteği (POST /inventory) */
+/** Stoka yeni ürün ekleme isteği (POST /api/inventory) */
 export interface CreateInventoryRequest {
   productId: string;
   warehouseId: string;
@@ -66,7 +75,7 @@ export interface Order {
   customer?: { id: string; firstName: string; lastName: string };
 }
 
-/** Sipariş oluşturma isteği (POST /orders) */
+/** Sipariş oluşturma isteği (POST /api/orders) */
 export interface CreateOrderRequest {
   customerId: string;
   productId: string;

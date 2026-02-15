@@ -10,7 +10,7 @@ using Shared.Api;
 namespace OrderApi.Presentation.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/orders")]
 public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -52,6 +52,7 @@ public class OrdersController : ControllerBase
                 request.CustomerId,
                 request.ProductId,
                 request.Quantity,
+                request.UnitPrice,
                 username), cancellationToken);
             if (!result.Success)
                 return BadRequest(ResultDto<Order>.Failure(result.ErrorMessage ?? "Sipariş oluşturulamadı."));

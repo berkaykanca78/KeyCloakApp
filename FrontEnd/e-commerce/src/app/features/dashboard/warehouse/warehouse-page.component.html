@@ -3,8 +3,8 @@
     <h1 class="page-title">Depo</h1>
     <p class="page-desc">Depo bilgileri ve stok kalemleri. Önce depo ekleyin, sonra stok kalemi ekleyin.</p>
     <div class="header-actions">
-      <a [routerLink]="['/dashboard/depo/yeni']" class="btn btn-primary">+ Depo ekle</a>
-      <a [routerLink]="['/dashboard/depo/ekle']" class="btn btn-ghost">+ Stok kalemi ekle</a>
+      <a [routerLink]="['/dashboard/warehouse/new']" class="btn btn-primary">+ Depo ekle</a>
+      <a [routerLink]="['/dashboard/warehouse/add']" class="btn btn-ghost">+ Stok kalemi ekle</a>
     </div>
   </header>
 
@@ -37,7 +37,7 @@
           </ul>
         </div>
       } @else {
-        <div class="state state-empty">Henüz depo yok. <a routerLink="/dashboard/depo/yeni">Depo ekleyin</a>.</div>
+        <div class="state state-empty">Henüz depo yok. <a routerLink="/dashboard/warehouse/new">Depo ekleyin</a>.</div>
       }
     </section>
 
@@ -61,13 +61,13 @@
                 <span class="row-badge" [class.in-stock]="item.inStock" [class.out-of-stock]="!item.inStock">
                   {{ item.inStock ? 'Stokta' : 'Tükendi' }}
                 </span>
-                <a [routerLink]="['/dashboard/depo', item.id]" class="row-link">Düzenle</a>
+                <a [routerLink]="['/dashboard/warehouse', item.id]" class="row-link">Düzenle</a>
               </li>
             }
           </ul>
         </div>
       } @else {
-        <div class="state state-empty">Henüz stok kalemi yok. <a routerLink="/dashboard/depo/ekle">Stok kalemi ekleyin</a>.</div>
+        <div class="state state-empty">Henüz stok kalemi yok. <a routerLink="/dashboard/warehouse/add">Stok kalemi ekleyin</a>.</div>
       }
     </section>
   }

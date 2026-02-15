@@ -25,6 +25,8 @@ public class CreateProductWithWarehousesUseCase
 
     public async Task<(Product? Product, string? Error)> ExecuteAsync(
         string name,
+        decimal unitPrice,
+        string currency,
         string? imageKey,
         IReadOnlyList<Guid> warehouseIds,
         int initialQuantity,
@@ -37,8 +39,9 @@ public class CreateProductWithWarehousesUseCase
 
         if (initialQuantity < 0)
             initialQuantity = 0;
+        if (string.IsNullOrWhiteSpace(currency)) currency = "TRY";
 
-        var product = Product.Create(name.Trim(), imageKey);
+        var product = Product.Create(name.Trim(), unitPrice, currency, imageKey);
         _productRepository.Add(product);
         await _productRepository.SaveChangesAsync(cancellationToken);
 
@@ -48,7 +51,7 @@ public class CreateProductWithWarehousesUseCase
             var warehouse = await _warehouseRepository.GetByIdAsync(warehouseId, cancellationToken);
             if (warehouse == null)
                 continue;
-            var item = InventoryItem.Create(product.Id, warehouseId, quantity, null);
+            var item = InventoryItem.Create(product.Id, warehouseId, quantity);
             _inventoryRepository.Add(item);
         }
 

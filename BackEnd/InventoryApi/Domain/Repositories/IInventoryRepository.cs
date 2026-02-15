@@ -9,5 +9,4 @@ public interface IInventoryRepository
     Task<IReadOnlyList<InventoryItem>> GetAllAsync(CancellationToken cancellationToken = default);
     void Add(InventoryItem item);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    Task<bool> UpdateImageKeyAsync(Guid id, string imageKey, CancellationToken cancellationToken = default);
 }

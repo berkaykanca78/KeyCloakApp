@@ -5,6 +5,8 @@ namespace InventoryApi.Application.DTOs;
 /// </summary>
 public record CreateProductRequest(
     string Name,
-    string? ImageKey,
-    IReadOnlyList<Guid> WarehouseIds,
+    decimal UnitPrice = 0,
+    string Currency = "TRY",
+    string? ImageKey = null,
+    IReadOnlyList<Guid>? WarehouseIds = null,
     int InitialQuantity = 0);

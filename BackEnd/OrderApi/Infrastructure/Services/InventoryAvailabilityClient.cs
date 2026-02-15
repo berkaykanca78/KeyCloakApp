@@ -13,7 +13,7 @@ public class InventoryAvailabilityClient : IInventoryAvailabilityClient
 
     public async Task<(bool IsAvailable, string? Message, int AvailableQuantity)> CheckAsync(Guid productId, int quantity, CancellationToken cancellationToken = default)
     {
-        var url = $"inventory/availability?productId={productId}&quantity={quantity}";
+        var url = $"api/inventory/availability?productId={productId}&quantity={quantity}";
         var response = await _httpClient.GetAsync(url, cancellationToken);
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
 

@@ -20,7 +20,7 @@ export class InventoryService {
   /** Herkese açık ürün listesi (token gerekmez) */
   getPublic(): Observable<{ message: string; items: InventoryPublicItem[] }> {
     return this.http
-      .get<ResultDto<InventoryPublicResponse>>(`${this.baseUrl}/inventory/public`)
+      .get<ResultDto<InventoryPublicResponse>>(`${this.baseUrl}/api/inventory/public`)
       .pipe(
         map((res) => ({
           message: res.data?.message ?? res.message ?? '',
@@ -33,7 +33,7 @@ export class InventoryService {
   /** Tüm stok listesi (Admin token gerekir) */
   getAll(): Observable<InventoryItem[]> {
     return this.http
-      .get<ResultDto<InventoryItem[]>>(`${this.baseUrl}/inventory`)
+      .get<ResultDto<InventoryItem[]>>(`${this.baseUrl}/api/inventory`)
       .pipe(
         map((res) => (res.data ?? [])),
         catchError(() => of([]))
@@ -43,7 +43,7 @@ export class InventoryService {
   /** Tek stok kalemi detayı (Admin/User token gerekir) */
   getById(id: string): Observable<InventoryItem | null> {
     return this.http
-      .get<ResultDto<InventoryItem>>(`${this.baseUrl}/inventory/${id}`)
+      .get<ResultDto<InventoryItem>>(`${this.baseUrl}/api/inventory/${id}`)
       .pipe(
         map((res) => res.data ?? null),
         catchError(() => of(null))
@@ -53,14 +53,14 @@ export class InventoryService {
   /** Stok miktarı güncelle (Admin token gerekir) */
   updateQuantity(id: string, request: UpdateQuantityRequest): Observable<ResultDto<InventoryItem>> {
     return this.http.put<ResultDto<InventoryItem>>(
-      `${this.baseUrl}/inventory/${id}`,
+      `${this.baseUrl}/api/inventory/${id}`,
       request
     );
   }
 
   /** Stoka yeni ürün ekle (Admin token gerekir) */
   create(request: CreateInventoryRequest): Observable<ResultDto<InventoryItem>> {
-    return this.http.post<ResultDto<InventoryItem>>(`${this.baseUrl}/inventory`, request);
+    return this.http.post<ResultDto<InventoryItem>>(`${this.baseUrl}/api/inventory`, request);
   }
 
   /** Stok kalemi resmi yükle – FormData, alan adı: file */
@@ -68,20 +68,20 @@ export class InventoryService {
     const form = new FormData();
     form.append('file', file, file.name || 'image.jpg');
     return this.http.post<ResultDto<{ imageKey: string }>>(
-      `${this.baseUrl}/inventory/${inventoryId}/image`,
+      `${this.baseUrl}/api/inventory/${inventoryId}/image`,
       form
     );
   }
 
   /** Stok kalemi resmi için proxy URL */
   getImageUrl(inventoryId: string): string {
-    return `${this.baseUrl}/inventory/${inventoryId}/image`;
+    return `${this.baseUrl}/api/inventory/${inventoryId}/image`;
   }
 
   /** Presigned URL (opsiyonel) */
   getImagePresignedUrl(inventoryId: string, expirySeconds = 3600): Observable<ResultDto<{ url: string }>> {
     return this.http.get<ResultDto<{ url: string }>>(
-      `${this.baseUrl}/inventory/${inventoryId}/image/url`,
+      `${this.baseUrl}/api/inventory/${inventoryId}/image/url`,
       { params: { expirySeconds } }
     );
   }
@@ -89,21 +89,21 @@ export class InventoryService {
   /** Ürün listesi (Admin, stok eklerken dropdown) */
   getProducts(): Observable<{ id: string; name: string }[]> {
     return this.http
-      .get<ResultDto<{ id: string; name: string }[]>>(`${this.baseUrl}/inventory/products`)
+      .get<ResultDto<{ id: string; name: string }[]>>(`${this.baseUrl}/api/products`)
       .pipe(map((res) => res.data ?? []), catchError(() => of([])));
   }
 
   /** Depo listesi (Admin, stok eklerken dropdown) */
   getWarehouses(): Observable<{ id: string; name: string; code?: string | null }[]> {
     return this.http
-      .get<ResultDto<{ id: string; name: string; code?: string | null }[]>>(`${this.baseUrl}/inventory/warehouses`)
+      .get<ResultDto<{ id: string; name: string; code?: string | null }[]>>(`${this.baseUrl}/api/warehouses`)
       .pipe(map((res) => res.data ?? []), catchError(() => of([])));
   }
 
   /** Yeni depo ekle (Admin) – önce depo, sonra ürün eklenir */
   createWarehouse(name: string, code?: string): Observable<ResultDto<{ id: string; name: string; code?: string | null }>> {
     return this.http.post<ResultDto<{ id: string; name: string; code?: string | null }>>(
-      `${this.baseUrl}/inventory/warehouses`,
+      `${this.baseUrl}/api/warehouses`,
       { name, code: code || null }
     );
   }
@@ -113,27 +113,51 @@ export class InventoryService {
     const form = new FormData();
     form.append('file', file, file.name || 'image.jpg');
     return this.http.post<ResultDto<{ imageKey: string }>>(
-      `${this.baseUrl}/inventory/warehouses/${warehouseId}/image`,
+      `${this.baseUrl}/api/warehouses/${warehouseId}/image`,
       form
     );
   }
 
   /** Depo resmi için URL (img src – stream endpoint) */
   getWarehouseImageUrl(warehouseId: string): string {
-    return `${this.baseUrl}/inventory/warehouses/${warehouseId}/image/stream`;
+    return `${this.baseUrl}/api/warehouses/${warehouseId}/image/stream`;
+  }
+
+  /** Ürün için dönemsel indirim ekle (Admin) */
+  createProductDiscount(request: {
+    productId: string;
+    discountPercent: number;
+    startAt: string; // ISO date
+    endAt: string;   // ISO date
+    name?: string;
+  }): Observable<ResultDto<unknown>> {
+    return this.http.post<ResultDto<unknown>>(
+      `${this.baseUrl}/api/products/discounts`,
+      {
+        productId: request.productId,
+        discountPercent: request.discountPercent,
+        startAt: request.startAt,
+        endAt: request.endAt,
+        name: request.name ?? null,
+      }
+    );
   }
 
   /** Yeni ürün ekle (Admin) – en az bir depo seçilmeli */
   createProduct(request: {
     name: string;
+    unitPrice?: number;
+    currency?: string;
     imageKey?: string;
     warehouseIds: string[];
     initialQuantity?: number;
   }): Observable<ResultDto<{ id: string; name: string }>> {
     return this.http.post<ResultDto<{ id: string; name: string }>>(
-      `${this.baseUrl}/inventory/products`,
+      `${this.baseUrl}/api/products`,
       {
         name: request.name,
+        unitPrice: request.unitPrice ?? 0,
+        currency: request.currency ?? 'TRY',
         imageKey: request.imageKey ?? null,
         warehouseIds: request.warehouseIds,
         initialQuantity: request.initialQuantity ?? 0,

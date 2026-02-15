@@ -32,7 +32,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Cre
         if (!result.isAvailable)
             return new CreateOrderCommandResult(null, false, result.message ?? "Yetersiz stok.");
 
-        var (order, _) = Order.Place(request.CustomerId, request.ProductId, request.Quantity, request.CreatedBy);
+        var (order, _) = Order.Place(request.CustomerId, request.ProductId, request.Quantity, request.UnitPrice, request.CreatedBy);
 
         var correlationId = Guid.NewGuid();
         var evt = new OrderPlacedEvent

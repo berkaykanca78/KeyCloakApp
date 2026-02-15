@@ -7,17 +7,17 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InventoryService } from '../../core/api/inventory.service';
-import type { CreateInventoryRequest } from '../../core/api/api-types';
+import { InventoryService } from '../../../core/api/inventory.service';
+import type { CreateInventoryRequest } from '../../../core/api/api-types';
 
 @Component({
-  selector: 'app-depo-create-page',
+  selector: 'app-inventory-create-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './depo-create-page.component.html',
-  styleUrl: './depo-create-page.component.scss',
+  templateUrl: './inventory-create-page.component.html',
+  styleUrl: './inventory-create-page.component.scss',
 })
-export class DepoCreatePageComponent implements OnInit {
+export class InventoryCreatePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly inventory = inject(InventoryService);
   private readonly fb = inject(FormBuilder);
@@ -58,7 +58,7 @@ export class DepoCreatePageComponent implements OnInit {
           return;
         }
         this.saving.set(false);
-        this.router.navigate(['/dashboard/depo', res.data.id]);
+        this.router.navigate(['/dashboard/warehouse', res.data.id]);
       },
       error: (err) => {
         this.createError.set(err?.error?.message ?? 'Stok kalemi eklenemedi.');

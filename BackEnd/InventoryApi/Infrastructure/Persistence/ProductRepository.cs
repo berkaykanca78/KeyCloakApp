@@ -17,5 +17,14 @@ public class ProductRepository : IProductRepository
         => await _db.Products.OrderBy(p => p.Name).ToListAsync(cancellationToken);
 
     public void Add(Product product) => _db.Products.Add(product);
+
+    public async Task<bool> UpdateImageKeyAsync(Guid productId, string imageKey, CancellationToken cancellationToken = default)
+    {
+        var count = await _db.Products
+            .Where(p => p.Id == productId)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ImageKey, imageKey), cancellationToken);
+        return count > 0;
+    }
+
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => _db.SaveChangesAsync(cancellationToken);
 }

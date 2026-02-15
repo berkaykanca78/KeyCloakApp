@@ -30,10 +30,10 @@
         <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
           {{ saving() ? 'Kaydediliyor…' : 'Stok kalemi ekle' }}
         </button>
-        <a routerLink="/dashboard/depo" class="btn btn-ghost">İptal</a>
+        <a routerLink="/dashboard/warehouse" class="btn btn-ghost">İptal</a>
       </div>
     </form>
   </div>
 
-  <a routerLink="/dashboard/depo" class="back-link">← Depo listesine dön</a>
+  <a routerLink="/dashboard/warehouse" class="back-link">← Depo listesine dön</a>
 </div>

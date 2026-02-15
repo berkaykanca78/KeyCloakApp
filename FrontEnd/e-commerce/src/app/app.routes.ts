@@ -44,46 +44,46 @@ export const routes: Routes = [
       import('./layouts/dashboard-layout/dashboard-layout.component').then((m) => m.DashboardLayoutComponent),
     canActivate: [adminGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'depo' },
+      { path: '', pathMatch: 'full', redirectTo: 'warehouse' },
       {
-        path: 'depo',
+        path: 'warehouse',
         loadComponent: () =>
-          import('./features/dashboard/depo-page.component').then((m) => m.DepoPageComponent),
+          import('./features/dashboard/warehouse/warehouse-page.component').then((m) => m.WarehousePageComponent),
       },
       {
-        path: 'depo/yeni',
+        path: 'warehouse/new',
         loadComponent: () =>
-          import('./features/dashboard/warehouse-create-page.component').then((m) => m.WarehouseCreatePageComponent),
+          import('./features/dashboard/warehouse/warehouse-create-page.component').then((m) => m.WarehouseCreatePageComponent),
       },
       {
-        path: 'depo/ekle',
+        path: 'warehouse/add',
         loadComponent: () =>
-          import('./features/dashboard/depo-create-page.component').then((m) => m.DepoCreatePageComponent),
+          import('./features/dashboard/warehouse/inventory-create-page.component').then((m) => m.InventoryCreatePageComponent),
       },
       {
-        path: 'depo/:id',
+        path: 'warehouse/:id',
         loadComponent: () =>
-          import('./features/dashboard/depo-detail-page.component').then((m) => m.DepoDetailPageComponent),
+          import('./features/dashboard/warehouse/warehouse-detail-page.component').then((m) => m.WarehouseDetailPageComponent),
       },
       {
-        path: 'urunler',
+        path: 'products',
         loadComponent: () =>
-          import('./features/dashboard/urunler-page.component').then((m) => m.UrunlerPageComponent),
+          import('./features/dashboard/products/products-page.component').then((m) => m.ProductsPageComponent),
       },
       {
-        path: 'urunler/ekle',
+        path: 'products/add',
         loadComponent: () =>
-          import('./features/dashboard/product-create-page.component').then((m) => m.ProductCreatePageComponent),
+          import('./features/dashboard/products/product-create-page.component').then((m) => m.ProductCreatePageComponent),
       },
       {
-        path: 'siparisler',
+        path: 'orders',
         loadComponent: () =>
-          import('./features/dashboard/siparisler-page.component').then((m) => m.SiparislerPageComponent),
+          import('./features/dashboard/orders/orders-page.component').then((m) => m.OrdersPageComponent),
       },
       {
-        path: 'musteriler',
+        path: 'customers',
         loadComponent: () =>
-          import('./features/dashboard/musteriler-page.component').then((m) => m.MusterilerPageComponent),
+          import('./features/dashboard/customer/customers-page.component').then((m) => m.CustomersPageComponent),
       },
     ],
   },

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderApi.Application.DTOs;
@@ -8,7 +9,7 @@ using Shared.Api;
 namespace OrderApi.Presentation.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/customers")]
 public class CustomersController : ControllerBase
 {
     private readonly ICustomerRepository _customerRepository;
@@ -48,7 +49,7 @@ public class CustomersController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<ResultDto<Customer>>> GetMe(CancellationToken cancellationToken = default)
     {
-        var sub = User.FindFirst("sub")?.Value;
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(sub))
             return NotFound(ResultDto<Customer>.Failure("Kullanıcı bilgisi bulunamadı."));
         var customer = await _customerRepository.GetByKeycloakSubAsync(sub, cancellationToken);
@@ -62,7 +63,7 @@ public class CustomersController : ControllerBase
     [HttpPost("me")]
     public async Task<ActionResult<ResultDto<Customer>>> CreateMe([FromBody] CreateCustomerMeRequest? request, CancellationToken cancellationToken = default)
     {
-        var sub = User.FindFirst("sub")?.Value;
+        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(sub))
             return Unauthorized(ResultDto<Customer>.Failure("Kullanıcı bilgisi bulunamadı."));
 

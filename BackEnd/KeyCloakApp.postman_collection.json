@@ -98,7 +98,7 @@
           "request": {
             "method": "GET",
             "header": [{"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "http://localhost:5198/orders/public", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders", "public"]}
+            "url": {"raw": "http://localhost:5198/api/orders/public", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["api", "orders", "public"]}
           },
           "response": []
         },
@@ -108,7 +108,7 @@
             "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
             "method": "GET",
             "header": [{"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "http://localhost:5198/orders", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders"]}
+            "url": {"raw": "http://localhost:5198/api/orders", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["api", "orders"]}
           },
           "response": []
         },
@@ -118,7 +118,7 @@
             "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
             "method": "GET",
             "header": [{"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "http://localhost:5198/orders/my", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders", "my"]}
+            "url": {"raw": "http://localhost:5198/api/orders/my", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["api", "orders", "my"]}
           },
           "response": []
         },
@@ -136,7 +136,7 @@
               "raw": "{\n  \"productName\": \"Örnek Ürün\",\n  \"quantity\": 2,\n  \"customerName\": \"Müşteri Adı\"\n}",
               "options": {"raw": {"language": "json"}}
             },
-            "url": {"raw": "http://localhost:5198/orders", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["orders"]}
+            "url": {"raw": "http://localhost:5198/api/orders", "protocol": "http", "host": ["localhost"], "port": "5198", "path": ["api", "orders"]}
           },
           "response": []
         }
@@ -150,7 +150,7 @@
           "request": {
             "method": "GET",
             "header": [{"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "http://localhost:5131/inventory/public", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory", "public"]}
+            "url": {"raw": "http://localhost:5131/api/inventory/public", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["api", "inventory", "public"]}
           },
           "response": []
         },
@@ -160,7 +160,7 @@
             "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
             "method": "GET",
             "header": [{"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "http://localhost:5131/inventory", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory"]}
+            "url": {"raw": "http://localhost:5131/api/inventory", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["api", "inventory"]}
           },
           "response": []
         },
@@ -170,7 +170,7 @@
             "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{Bearer_Token}}", "type": "string"}]},
             "method": "GET",
             "header": [{"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "http://localhost:5131/inventory/1", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory", "1"]}
+            "url": {"raw": "http://localhost:5131/api/inventory/1", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["api", "inventory", "1"]}
           },
           "response": []
         },
@@ -188,7 +188,7 @@
               "raw": "{\n  \"quantity\": 25\n}",
               "options": {"raw": {"language": "json"}}
             },
-            "url": {"raw": "http://localhost:5131/inventory/1", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["inventory", "1"]}
+            "url": {"raw": "http://localhost:5131/api/inventory/1", "protocol": "http", "host": ["localhost"], "port": "5131", "path": ["api", "inventory", "1"]}
           },
           "response": []
         }
