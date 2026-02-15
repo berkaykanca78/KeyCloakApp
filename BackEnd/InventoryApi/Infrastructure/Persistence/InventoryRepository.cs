@@ -4,29 +4,43 @@ using InventoryApi.Domain.Repositories;
 
 namespace InventoryApi.Infrastructure.Persistence;
 
-/// <summary>
-/// DDD Repository implementation: Inventory aggregate kalıcılığı (EF Core).
-/// </summary>
 public class InventoryRepository : IInventoryRepository
 {
     private readonly InventoryDbContext _db;
 
-    public InventoryRepository(InventoryDbContext db)
+    public InventoryRepository(InventoryDbContext db) => _db = db;
+
+    public Task<InventoryItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => _db.InventoryItems.Include(i => i.Product).Include(i => i.Warehouse)
+            .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyList<InventoryItem>> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default)
     {
-        _db = db;
+        var list = await _db.InventoryItems.Include(i => i.Product).Include(i => i.Warehouse)
+            .Where(i => i.ProductId == productId)
+            .OrderByDescending(i => i.Quantity)
+            .ToListAsync(cancellationToken);
+        return list;
     }
 
-    public Task<InventoryItem?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
-        => _db.InventoryItems.FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
-
-    public Task<InventoryItem?> GetByProductNameAsync(string productName, CancellationToken cancellationToken = default)
-        => _db.InventoryItems.FirstOrDefaultAsync(i => i.ProductName == productName, cancellationToken);
-
     public async Task<IReadOnlyList<InventoryItem>> GetAllAsync(CancellationToken cancellationToken = default)
-        => await _db.InventoryItems.ToListAsync(cancellationToken);
+    {
+        var list = await _db.InventoryItems.Include(i => i.Product).Include(i => i.Warehouse)
+            .OrderBy(i => i.Product!.Name).ThenBy(i => i.Warehouse!.Name)
+            .ToListAsync(cancellationToken);
+        return list;
+    }
 
     public void Add(InventoryItem item) => _db.InventoryItems.Add(item);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => _db.SaveChangesAsync(cancellationToken);
+
+    public async Task<bool> UpdateImageKeyAsync(Guid id, string imageKey, CancellationToken cancellationToken = default)
+    {
+        var count = await _db.InventoryItems
+            .Where(i => i.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(i => i.ImageKey, imageKey), cancellationToken);
+        return count > 0;
+    }
 }

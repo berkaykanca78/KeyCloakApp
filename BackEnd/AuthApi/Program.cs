@@ -3,8 +3,19 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
+using AuthApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var config = ConfigurationOptions.Parse(redisConnection);
+    return ConnectionMultiplexer.Connect(config);
+});
+builder.Services.AddScoped<ICityRedisService, CityRedisService>();
+builder.Services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
 
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
@@ -94,6 +105,19 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 app.UseCors();
+
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var cityService = scope.ServiceProvider.GetRequiredService<ICityRedisService>();
+        await cityService.SeedAsync();
+    }
+    catch (Exception)
+    {
+        // Redis kapalıysa veya seed hata verirse uygulama yine de ayağa kalksın
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

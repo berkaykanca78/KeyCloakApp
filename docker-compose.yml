@@ -60,6 +60,40 @@ services:
       timeout: 5s
       retries: 5
 
+  # MinIO — S3 uyumlu object storage (ürün resimleri)
+  minio:
+    image: minio/minio:latest
+    container_name: keycloakapp_minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console (web UI)
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Redis — İl/ilçe ve cache (Türkiye plaka verisi)
+  redis:
+    image: redis:7-alpine
+    container_name: keycloakapp_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # OrderApi — Azure SQL Edge (MSSQL'den çok daha küçük, T-SQL uyumlu, aynı port/bağlantı)
   mssql:
     image: mcr.microsoft.com/azure-sql-edge:latest
@@ -82,3 +116,5 @@ volumes:
   keycloak_data:
   postgres_data:
   mssql_data:
+  minio_data:
+  redis_data:

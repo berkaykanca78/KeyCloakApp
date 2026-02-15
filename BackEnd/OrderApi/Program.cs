@@ -27,6 +27,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddHostedService<OutboxPublisherHostedService>();
@@ -132,21 +133,6 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 app.UseCors();
-
-// Hiç kayıt yoksa seed data ekle (DDD: domain factory kullanılır)
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
-    if (!await db.Orders.AnyAsync())
-    {
-        var now = DateTime.UtcNow;
-        await db.Orders.AddRangeAsync(
-            Order.CreateForSeed("Ürün A", 3, "Müşteri 1", "user", now.AddDays(-2)),
-            Order.CreateForSeed("Ürün B", 1, "Müşteri 2", "admin", now.AddDays(-1)),
-            Order.CreateForSeed("Ürün C", 5, "Müşteri 3", "user", now));
-        await db.SaveChangesAsync();
-    }
-}
 
 if (app.Environment.IsDevelopment())
 {

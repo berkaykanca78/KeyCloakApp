@@ -8,9 +8,12 @@ export interface ResultDto<T> {
 
 /** Herkese açık ürün özeti (GET /inventory/public) */
 export interface InventoryPublicItem {
-  id: number;
+  id: string;
+  productId: string;
   productName: string;
+  warehouseName: string;
   inStock: boolean;
+  quantity: number;
 }
 
 /** Public endpoint yanıtı (Items + Message + Time) */
@@ -22,14 +25,24 @@ export interface InventoryPublicResponse {
 
 /** Tam stok kalemi (GET /inventory, GET /inventory/:id) */
 export interface InventoryItem {
-  id: number;
-  productName: string;
+  id: string;
+  productId: string;
+  warehouseId: string;
   quantity: number;
-  location: string;
+  imageKey?: string | null;
+  product?: { id: string; name: string; imageKey?: string | null };
+  warehouse?: { id: string; name: string; code?: string | null };
 }
 
 /** Stok miktarı güncelleme isteği (PUT /inventory/:id) */
 export interface UpdateQuantityRequest {
+  quantity: number;
+}
+
+/** Stoka yeni ürün ekleme isteği (POST /inventory) */
+export interface CreateInventoryRequest {
+  productId: string;
+  warehouseId: string;
   quantity: number;
 }
 
@@ -44,17 +57,18 @@ export interface KeycloakTokenResponse {
 
 /** Sipariş (OrderApi) */
 export interface Order {
-  id: number;
-  productName: string;
+  id: string;
+  customerId: string;
+  productId: string;
   quantity: number;
-  customerName: string;
   createdBy: string;
   createdAt: string;
+  customer?: { id: string; firstName: string; lastName: string };
 }
 
 /** Sipariş oluşturma isteği (POST /orders) */
 export interface CreateOrderRequest {
-  productName: string;
+  customerId: string;
+  productId: string;
   quantity: number;
-  customerName: string;
 }

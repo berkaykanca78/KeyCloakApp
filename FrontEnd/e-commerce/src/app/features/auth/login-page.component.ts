@@ -32,7 +32,7 @@ export class LoginPageComponent {
 
   protected returnUrl = computed(() => {
     const q = this.route.snapshot.queryParamMap.get('returnUrl');
-    return q ?? '/products';
+    return q ?? '/urunler';
   });
 
   protected onSubmit(): void {

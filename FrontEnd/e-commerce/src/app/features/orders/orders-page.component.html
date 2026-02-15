@@ -11,9 +11,9 @@
     <ul class="order-list" role="list">
       @for (order of orders(); track order.id) {
         <li class="order-card">
-          <span class="order-product">{{ order.productName }}</span>
+          <span class="order-product">Ürün {{ order.productId }}</span>
           <span class="order-qty">Adet: {{ order.quantity }}</span>
-          <span class="order-customer">{{ order.customerName }}</span>
+          <span class="order-customer">{{ order.customer ? (order.customer.firstName + ' ' + order.customer.lastName) : order.customerId }}</span>
           <span class="order-date">{{ order.createdAt | date: 'short' }}</span>
         </li>
       }

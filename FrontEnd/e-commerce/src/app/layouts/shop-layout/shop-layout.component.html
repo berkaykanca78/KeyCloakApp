@@ -1,0 +1,33 @@
+<div class="shop-layout">
+  <header class="shop-header">
+    <a routerLink="/" class="logo" (click)="closeMenu()">
+      <span class="logo-text">Mağaza</span>
+    </a>
+    <button type="button" class="menu-toggle" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Menü">
+      <span class="hamburger"></span>
+      <span class="hamburger"></span>
+      <span class="hamburger"></span>
+    </button>
+    <nav class="nav" [class.nav--open]="menuOpen()" aria-label="Ana menü">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Ana Sayfa</a>
+      <a routerLink="/urunler" routerLinkActive="active" (click)="closeMenu()">Ürünler</a>
+      @if (auth.isAuthenticated()) {
+        <a routerLink="/siparislerim" routerLinkActive="active" (click)="closeMenu()">Siparişlerim</a>
+      }
+      @if (auth.isAdmin()) {
+        <a routerLink="/dashboard" class="nav-dashboard" (click)="closeMenu()">Yönetim</a>
+      }
+      @if (auth.isAuthenticated()) {
+        <button type="button" class="nav-btn" (click)="logout()">Çıkış</button>
+      } @else {
+        <a routerLink="/giris" routerLinkActive="active" class="nav-login" (click)="closeMenu()">Giriş</a>
+      }
+    </nav>
+  </header>
+  <main class="shop-main">
+    <router-outlet />
+  </main>
+  <footer class="shop-footer">
+    <p>&copy; {{ currentYear }} Mağaza. Tüm hakları saklıdır.</p>
+  </footer>
+</div>

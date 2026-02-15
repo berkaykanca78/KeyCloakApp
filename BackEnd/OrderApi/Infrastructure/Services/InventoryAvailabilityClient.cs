@@ -3,23 +3,17 @@ using Shared.Api;
 
 namespace OrderApi.Infrastructure.Services;
 
-/// <summary>
-/// HTTP ile InventoryApi /inventory/availability çağrısı.
-/// </summary>
 public class InventoryAvailabilityClient : IInventoryAvailabilityClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private readonly HttpClient _httpClient;
 
-    public InventoryAvailabilityClient(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
+    public InventoryAvailabilityClient(HttpClient httpClient) => _httpClient = httpClient;
 
-    public async Task<(bool IsAvailable, string? Message, int AvailableQuantity)> CheckAsync(string productName, int quantity, CancellationToken cancellationToken = default)
+    public async Task<(bool IsAvailable, string? Message, int AvailableQuantity)> CheckAsync(Guid productId, int quantity, CancellationToken cancellationToken = default)
     {
-        var url = $"inventory/availability?productName={Uri.EscapeDataString(productName)}&quantity={quantity}";
+        var url = $"inventory/availability?productId={productId}&quantity={quantity}";
         var response = await _httpClient.GetAsync(url, cancellationToken);
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
 

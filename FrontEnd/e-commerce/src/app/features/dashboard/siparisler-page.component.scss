@@ -1,0 +1,64 @@
+.dashboard-page {
+  max-width: 56rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.page-desc {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+}
+
+.card.table-wrap {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table th {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+}
+
+.state {
+  padding: 2rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.state-loading {
+  color: var(--color-text-muted);
+}
+
+.state-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.state-empty {
+  color: var(--color-text-muted);
+}

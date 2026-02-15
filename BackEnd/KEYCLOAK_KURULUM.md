@@ -148,12 +148,12 @@ Bundan sonra giriş yapan kullanıcının realm rolleri access token’da `role`
 
 PowerShell’de (tek satırda veya satır sonunda `\` ile bölerek):
 
-/// BURAYA_CLIENT_SECRET_YAPIŞTIRIN -> 8UnOB25jLwfU4fQpIgQjgt0xIVcXBMqo
+/// BURAYA_CLIENT_SECRET_YAPIŞTIRIN -> 1eEd4ciD2ZQBHCbxXA7nrUB0EJsWxb0S
 
 ```powershell
 $body = @{
     client_id     = "backend-api"
-    client_secret = "8UnOB25jLwfU4fQpIgQjgt0xIVcXBMqo"
+    client_secret = "1eEd4ciD2ZQBHCbxXA7nrUB0EJsWxb0S"
     username      = "user"
     password      = "user"
     grant_type    = "password"

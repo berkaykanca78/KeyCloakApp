@@ -2,11 +2,8 @@ using MediatR;
 
 namespace OrderApi.Application.Commands;
 
-/// <summary>
-/// CQRS Command: Sipariş oluşturma.
-/// </summary>
 public record CreateOrderCommand(
-    string ProductName,
+    Guid CustomerId,
+    Guid ProductId,
     int Quantity,
-    string CustomerName,
     string CreatedBy) : IRequest<CreateOrderCommandResult>;

@@ -1,0 +1,36 @@
+<div class="shop-page container">
+  <header class="page-header">
+    <h1 class="page-title">Ürünler</h1>
+    <p class="page-desc">Stoktaki ürünlere göz atın, sipariş verebilirsiniz.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="state state-loading">Yükleniyor…</div>
+  } @else if (error()) {
+    <div class="state state-error" role="alert">{{ error() }}</div>
+  } @else if (hasItems()) {
+    <ul class="product-grid" role="list">
+      @for (item of items(); track item.id) {
+        <li>
+          <a [routerLink]="['/urun', item.id]" class="product-card">
+            <span class="card-image-wrap">
+              <img
+                [src]="imageUrl(item.id)"
+                alt=""
+                width="280"
+                height="200"
+                (error)="$any($event.target).style.display='none'"
+              />
+              <span class="card-badge" [class.in-stock]="item.inStock" [class.out-of-stock]="!item.inStock">
+                {{ item.inStock ? 'Stokta' : 'Tükendi' }}
+              </span>
+            </span>
+            <span class="card-name">{{ item.productName }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="state state-empty">Henüz ürün bulunmuyor.</div>
+  }
+</div>

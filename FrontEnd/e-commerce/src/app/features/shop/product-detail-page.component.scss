@@ -1,0 +1,160 @@
+.shop-page {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.product-detail {
+  display: grid;
+  gap: 2rem;
+  max-width: 56rem;
+}
+
+@media (min-width: 768px) {
+  .product-detail {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.detail-media {
+  position: relative;
+  aspect-ratio: 4/3;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.detail-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+}
+
+.detail-badge.in-stock {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.detail-badge.out-of-stock {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.detail-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+.order-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.msg {
+  margin: 0 0 1rem 0;
+  font-size: 0.9375rem;
+}
+
+.msg.success {
+  color: var(--color-success);
+}
+
+.msg.error {
+  color: var(--color-error);
+}
+
+.order-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 20rem;
+}
+
+.order-form label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.order-form input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+}
+
+.order-form button {
+  margin-top: 0.25rem;
+  padding: 0.625rem 1rem;
+  font-weight: 600;
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.order-form button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.order-form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.order-hint {
+  margin: 1rem 0 0 0;
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+}
+
+.order-hint a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.order-hint a:hover {
+  text-decoration: underline;
+}
+
+.state {
+  padding: 2rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.state-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}

@@ -1,0 +1,67 @@
+<div class="dashboard-page">
+  @if (loading()) {
+    <div class="state state-loading">Yükleniyor…</div>
+  } @else if (error() || !item()) {
+    <div class="state state-error">{{ error() || 'Ürün bulunamadı.' }}</div>
+    <a routerLink="/dashboard/depo" class="back-link">← Depo listesine dön</a>
+  } @else {
+    <a routerLink="/dashboard/depo" class="back-link">← Depo listesine dön</a>
+    <header class="page-header">
+      <h1 class="page-title">{{ item()!.product?.name ?? 'Stok kalemi' }}</h1>
+      <p class="page-meta">Depo: {{ item()!.warehouse?.name ?? '-' }}</p>
+      @if (item()!.imageKey || item()!.product?.imageKey) {
+        <img [src]="imageUrl()" [alt]="item()!.product?.name ?? 'Ürün'" class="product-image" />
+      }
+    </header>
+
+    <div class="card sections">
+      <section class="section">
+        <h2 class="section-title">Mevcut miktar</h2>
+        <p class="quantity-value">{{ item()!.quantity }}</p>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Ürün resmi</h2>
+        @if (imageSuccess()) {
+          <p class="msg success">Resim yüklendi.</p>
+        }
+        @if (imageError()) {
+          <p class="msg error">{{ imageError() }}</p>
+        }
+        <div class="image-form">
+          <input
+            #fileInput
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            (change)="onImageFileChange($event)"
+          />
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!selectedImageFile() || uploadingImage()"
+            (click)="onImageSubmit()"
+          >
+            {{ uploadingImage() ? 'Yükleniyor…' : 'Resim yükle (S3)' }}
+          </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Stok miktarı güncelle</h2>
+        @if (saveSuccess()) {
+          <p class="msg success">Stok güncellendi.</p>
+        }
+        @if (saveError()) {
+          <p class="msg error">{{ saveError() }}</p>
+        }
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="qty-form">
+          <label for="quantity">Yeni miktar</label>
+          <input id="quantity" type="number" formControlName="quantity" min="0" />
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+            {{ saving() ? 'Kaydediliyor…' : 'Kaydet' }}
+          </button>
+        </form>
+      </section>
+    </div>
+  }
+</div>

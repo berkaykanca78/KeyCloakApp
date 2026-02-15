@@ -1,0 +1,48 @@
+<div class="shop-page container">
+  @if (loading()) {
+    <div class="state state-loading">Yükleniyor…</div>
+  } @else if (error() || !item()) {
+    <div class="state state-error">{{ error() || 'Ürün bulunamadı.' }}</div>
+    <a routerLink="/urunler" class="back-link">← Ürünlere dön</a>
+  } @else {
+    <a routerLink="/urunler" class="back-link">← Ürünlere dön</a>
+    <article class="product-detail">
+      <div class="detail-media">
+        <img
+          [src]="imageUrl()"
+          [alt]="item()!.productName"
+          width="600"
+          height="400"
+          (error)="$any($event.target).style.display='none'"
+        />
+        <span class="detail-badge" [class.in-stock]="item()!.inStock" [class.out-of-stock]="!item()!.inStock">
+          {{ item()!.inStock ? 'Stokta' : 'Tükendi' }}
+        </span>
+      </div>
+      <div class="detail-info">
+        <h1 class="detail-title">{{ item()!.productName }}</h1>
+        @if (auth.isAuthenticated()) {
+          <section class="order-section">
+            @if (orderSuccess()) {
+              <p class="msg success">Siparişiniz alındı.</p>
+            }
+            @if (orderError()) {
+              <p class="msg error">{{ orderError() }}</p>
+            }
+            @if (item()!.inStock) {
+              <form [formGroup]="form" (ngSubmit)="onSubmit()" class="order-form">
+                <label for="qty">Adet</label>
+                <input id="qty" type="number" formControlName="quantity" min="1" />
+                <button type="submit" [disabled]="form.invalid || orderSending()">
+                  {{ orderSending() ? 'Gönderiliyor…' : 'Sipariş ver' }}
+                </button>
+              </form>
+            }
+          </section>
+        } @else {
+          <p class="order-hint">Sipariş vermek için <a routerLink="/giris">giriş yapın</a>.</p>
+        }
+      </div>
+    </article>
+  }
+</div>

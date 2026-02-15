@@ -1,17 +1,29 @@
 using System.Security.Claims;
 using System.Text.Json;
+using Amazon.S3;
+using Amazon.S3.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MassTransit;
+using Amazon.S3.Util;
+using InventoryApi.Application.Contracts;
 using InventoryApi.Application.UseCases;
-using InventoryApi.Infrastructure.Messaging.Consumers;
 using InventoryApi.Domain.Aggregates;
 using InventoryApi.Domain.Repositories;
+using InventoryApi.Infrastructure.Messaging.Consumers;
 using InventoryApi.Infrastructure.Persistence;
+using InventoryApi.Infrastructure.S3;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
+{
+    o.MultipartBodyLengthLimit = 6 * 1024 * 1024; // 6 MB
+    o.ValueLengthLimit = int.MaxValue;
+    o.MultipartHeadersLengthLimit = int.MaxValue;
+});
 
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
@@ -24,12 +36,39 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<GetInventoryPublicUseCase>();
 builder.Services.AddScoped<GetAllInventoryUseCase>();
 builder.Services.AddScoped<GetInventoryByIdUseCase>();
 builder.Services.AddScoped<UpdateQuantityUseCase>();
 builder.Services.AddScoped<ReduceStockUseCase>();
 builder.Services.AddScoped<CheckAvailabilityUseCase>();
+builder.Services.AddScoped<CreateInventoryUseCase>();
+builder.Services.AddScoped<CreateProductUseCase>();
+builder.Services.AddScoped<CreateProductWithWarehousesUseCase>();
+builder.Services.AddScoped<CreateWarehouseUseCase>();
+builder.Services.AddScoped<UpdateWarehouseImageUseCase>();
+builder.Services.AddScoped<UpdateInventoryImageUseCase>();
+
+var s3Config = builder.Configuration.GetSection("S3");
+var s3ServiceUrl = s3Config["ServiceUrl"] ?? "http://localhost:9000";
+var bucketName = s3Config["BucketName"] ?? "inventory-images";
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var config = new AmazonS3Config
+    {
+        ServiceURL = s3ServiceUrl,
+        ForcePathStyle = true,
+        AuthenticationRegion = "us-east-1",
+    };
+    var accessKey = s3Config["AccessKey"];
+    var secretKey = s3Config["SecretKey"];
+    if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretKey))
+        return new AmazonS3Client(accessKey, secretKey, config);
+    return new AmazonS3Client(config);
+});
+builder.Services.AddScoped<IStorageService>(sp => new S3StorageService(sp.GetRequiredService<IAmazonS3>(), bucketName));
 
 var rabbitMq = builder.Configuration.GetSection("RabbitMQ");
 builder.Services.AddMassTransit(x =>
@@ -131,18 +170,18 @@ var app = builder.Build();
 
 app.UseCors();
 
-// Hiç kayıt yoksa seed data ekle (DDD: domain factory kullanılır)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
-    if (!await db.InventoryItems.AnyAsync())
+    // MinIO/S3 bucket yoksa oluştur (ürün resimleri)
+    try
     {
-        await db.InventoryItems.AddRangeAsync(
-            InventoryItem.CreateForSeed("Ürün A", 100, "Depo-1"),
-            InventoryItem.CreateForSeed("Ürün B", 50, "Depo-1"),
-            InventoryItem.CreateForSeed("Ürün C", 200, "Depo-2"));
-        await db.SaveChangesAsync();
+        var s3 = scope.ServiceProvider.GetRequiredService<IAmazonS3>();
+        var bn = builder.Configuration["S3:BucketName"] ?? "inventory-images";
+        var exists = await AmazonS3Util.DoesS3BucketExistV2Async(s3, bn);
+        if (!exists)
+            await s3.PutBucketAsync(new PutBucketRequest { BucketName = bn });
     }
+    catch { /* MinIO kapalıysa devam et */ }
 }
 
 if (app.Environment.IsDevelopment())

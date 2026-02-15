@@ -1,65 +1,43 @@
-using OrderApi.Domain.ValueObjects;
-
 namespace OrderApi.Domain.Aggregates;
 
 /// <summary>
-/// DDD Aggregate Root: Sipariş. Sipariş verme davranışı burada kapsüllenir.
+/// DDD Aggregate Root: Sipariş. Guid PK; CustomerId ve ProductId FK.
 /// </summary>
 public class Order
 {
-    public int Id { get; private set; }
-    public string ProductName { get; private set; } = string.Empty;
+    public Guid Id { get; private set; }
+    public Guid CustomerId { get; private set; }
+    public Guid ProductId { get; private set; }
     public int Quantity { get; private set; }
-    public string CustomerName { get; private set; } = string.Empty;
     public string CreatedBy { get; private set; } = string.Empty;
     public DateTime CreatedAt { get; private set; }
 
-    // EF Core materialization
+    public Customer? Customer { get; private set; }
+
     private Order() { }
 
-    /// <summary>
-    /// Yeni sipariş verir (factory). Domain kuralları burada uygulanır.
-    /// </summary>
-    public static (Order Order, Domain.Events.OrderPlacedDomainEvent DomainEvent) Place(
-        ProductName productName,
-        OrderQuantity quantity,
-        CustomerName customerName,
-        string createdBy)
+    public static (Order Order, Domain.Events.OrderPlacedDomainEvent DomainEvent) Place(Guid customerId, Guid productId, int quantity, string createdBy)
     {
         if (string.IsNullOrWhiteSpace(createdBy))
             createdBy = "unknown";
 
         var order = new Order
         {
-            ProductName = productName.Value,
-            Quantity = quantity.Value,
-            CustomerName = customerName.Value,
+            Id = Guid.NewGuid(),
+            CustomerId = customerId,
+            ProductId = productId,
+            Quantity = quantity,
             CreatedBy = createdBy,
             CreatedAt = DateTime.UtcNow
         };
 
         var domainEvent = new Domain.Events.OrderPlacedDomainEvent
         {
-            OrderId = 0, // Id, SaveChanges sonrası atanacak; use case güncelleyecek
-            ProductName = order.ProductName,
-            Quantity = order.Quantity
+            OrderId = order.Id,
+            ProductId = productId,
+            Quantity = quantity
         };
 
         return (order, domainEvent);
-    }
-
-    /// <summary>
-    /// Migration/seed için: event yayımlanmadan order oluşturur.
-    /// </summary>
-    internal static Order CreateForSeed(string productName, int quantity, string customerName, string createdBy, DateTime createdAt)
-    {
-        return new Order
-        {
-            ProductName = productName,
-            Quantity = quantity,
-            CustomerName = customerName,
-            CreatedBy = createdBy,
-            CreatedAt = createdAt
-        };
     }
 }

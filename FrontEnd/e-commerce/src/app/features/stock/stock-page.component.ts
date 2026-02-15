@@ -25,6 +25,11 @@ export class StockPageComponent {
   protected readonly items = signal<InventoryPublicItem[]>([]);
   protected readonly hasItems = computed(() => this.items().length > 0);
 
+  /** Ürün resmi proxy URL (yoksa 404 döner) */
+  protected imageUrl(id: string): string {
+    return this.inventory.getImageUrl(id);
+  }
+
   constructor() {
     this.inventory.getPublic().subscribe({
       next: (res) => {

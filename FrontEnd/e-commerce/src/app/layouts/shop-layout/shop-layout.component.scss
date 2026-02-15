@@ -1,0 +1,147 @@
+.shop-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.shop-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.logo {
+  text-decoration: none;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.logo-text {
+  letter-spacing: -0.02em;
+}
+
+.logo:hover {
+  color: var(--color-primary-hover);
+}
+
+.menu-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.menu-toggle:hover {
+  background: var(--color-bg-subtle);
+}
+
+.hamburger {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform 0.2s;
+}
+
+.nav {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.nav--open {
+  display: flex;
+}
+
+.nav a,
+.nav .nav-btn {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.nav a:hover,
+.nav .nav-btn:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-strong);
+}
+
+.nav a.active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.nav-dashboard {
+  color: var(--color-primary);
+}
+
+.nav-login {
+  color: var(--color-primary);
+}
+
+@media (min-width: 768px) {
+  .menu-toggle {
+    display: none;
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    padding-top: 0;
+    border-top: none;
+    gap: 0.25rem;
+  }
+
+  .nav a,
+  .nav .nav-btn {
+    padding: 0.5rem 1rem;
+  }
+}
+
+.shop-main {
+  flex: 1;
+}
+
+.shop-footer {
+  padding: 1.25rem 1.25rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+}
+
+.shop-footer p {
+  margin: 0;
+}

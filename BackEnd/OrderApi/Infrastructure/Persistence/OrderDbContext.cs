@@ -3,18 +3,12 @@ using OrderApi.Domain.Aggregates;
 
 namespace OrderApi.Infrastructure.Persistence;
 
-/// <summary>
-/// Order veritabanı (MSSQL) — Infrastructure katmanı, Domain aggregate.
-/// Transactional Outbox için: https://masstransit.io/documentation/configuration/middleware/outbox
-/// </summary>
 public class OrderDbContext : DbContext
 {
-    public OrderDbContext(DbContextOptions<OrderDbContext> options)
-        : base(options)
-    {
-    }
+    public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options) { }
 
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,13 +21,24 @@ public class OrderDbContext : DbContext
             e.Property(x => x.Payload).IsRequired();
         });
 
+        modelBuilder.Entity<Customer>(e =>
+        {
+            e.ToTable("Customers");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.KeycloakSub).HasMaxLength(200).IsRequired();
+            e.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
+            e.Property(x => x.LastName).HasMaxLength(100).IsRequired();
+            e.Property(x => x.Address).HasMaxLength(500);
+            e.Property(x => x.CardLast4).HasMaxLength(4);
+            e.HasIndex(x => x.KeycloakSub).IsUnique();
+        });
+
         modelBuilder.Entity<Order>(e =>
         {
             e.ToTable("Orders");
             e.HasKey(x => x.Id);
-            e.Property(x => x.ProductName).HasMaxLength(200).IsRequired();
-            e.Property(x => x.CustomerName).HasMaxLength(200).IsRequired();
             e.Property(x => x.CreatedBy).HasMaxLength(100).IsRequired();
+            e.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

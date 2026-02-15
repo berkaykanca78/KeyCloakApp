@@ -1,0 +1,74 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <h1 class="page-title">Depo</h1>
+    <p class="page-desc">Depo bilgileri ve stok kalemleri. Önce depo ekleyin, sonra stok kalemi ekleyin.</p>
+    <div class="header-actions">
+      <a [routerLink]="['/dashboard/depo/yeni']" class="btn btn-primary">+ Depo ekle</a>
+      <a [routerLink]="['/dashboard/depo/ekle']" class="btn btn-ghost">+ Stok kalemi ekle</a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="state state-loading">Yükleniyor…</div>
+  } @else if (error()) {
+    <div class="state state-error" role="alert">{{ error() }}</div>
+  } @else {
+    <section class="section" aria-labelledby="depolar-heading">
+      <h2 id="depolar-heading" class="section-title">Depolar</h2>
+      @if (hasWarehouses()) {
+        <div class="card table-wrap">
+          <ul class="depo-list warehouse-list" role="list">
+            @for (w of warehouses(); track w.id) {
+              <li class="depo-row warehouse-row">
+                <img
+                  [src]="warehouseImageUrl(w.id)"
+                  alt=""
+                  class="row-thumb"
+                  width="48"
+                  height="48"
+                  (error)="$any($event.target).style.display='none'"
+                />
+                <span class="row-name">{{ w.name }}</span>
+                @if (w.code) {
+                  <span class="row-code">{{ w.code }}</span>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <div class="state state-empty">Henüz depo yok. <a routerLink="/dashboard/depo/yeni">Depo ekleyin</a>.</div>
+      }
+    </section>
+
+    <section class="section" aria-labelledby="stok-heading">
+      <h2 id="stok-heading" class="section-title">Stok kalemleri</h2>
+      @if (hasItems()) {
+        <div class="card table-wrap">
+          <ul class="depo-list" role="list">
+            @for (item of items(); track item.id) {
+              <li class="depo-row">
+                <img
+                  [src]="imageUrl(item.id)"
+                  alt=""
+                  class="row-thumb"
+                  width="40"
+                  height="40"
+                  (error)="$any($event.target).style.display='none'"
+                />
+                <span class="row-name">{{ item.productName }}</span>
+                <span class="row-meta">{{ item.warehouseName }}</span>
+                <span class="row-badge" [class.in-stock]="item.inStock" [class.out-of-stock]="!item.inStock">
+                  {{ item.inStock ? 'Stokta' : 'Tükendi' }}
+                </span>
+                <a [routerLink]="['/dashboard/depo', item.id]" class="row-link">Düzenle</a>
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <div class="state state-empty">Henüz stok kalemi yok. <a routerLink="/dashboard/depo/ekle">Stok kalemi ekleyin</a>.</div>
+      }
+    </section>
+  }
+</div>

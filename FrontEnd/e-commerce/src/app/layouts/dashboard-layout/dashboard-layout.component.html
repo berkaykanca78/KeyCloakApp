@@ -1,0 +1,24 @@
+<div class="dashboard-layout">
+  <aside class="dashboard-sidebar" aria-label="Yönetim menüsü">
+    <a routerLink="/" class="sidebar-back">← Mağazaya dön</a>
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Özet</a>
+      <a routerLink="/dashboard/depo" routerLinkActive="active">Depo</a>
+      <a routerLink="/dashboard/urunler" routerLinkActive="active">Ürünler</a>
+      <a routerLink="/dashboard/siparisler" routerLinkActive="active">Siparişler</a>
+      <a routerLink="/dashboard/musteriler" routerLinkActive="active">Müşteriler</a>
+    </nav>
+  </aside>
+  <div class="dashboard-body">
+    <header class="dashboard-header">
+      <h1 class="dashboard-title">Yönetim Paneli</h1>
+      <div class="dashboard-actions">
+        <span class="dashboard-user" aria-label="Kullanıcı">Admin</span>
+        <button type="button" class="header-btn" (click)="logout()">Çıkış</button>
+      </div>
+    </header>
+    <main class="dashboard-main">
+      <router-outlet />
+    </main>
+  </div>
+</div>

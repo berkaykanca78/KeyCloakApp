@@ -1,0 +1,29 @@
+<div class="shop-page container">
+  <header class="page-header">
+    <h1 class="page-title">Siparişlerim</h1>
+    <p class="page-desc">Verdiğiniz siparişlerin listesi.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="state state-loading">Yükleniyor…</div>
+  } @else if (error()) {
+    <div class="state state-error" role="alert">{{ error() }}</div>
+  } @else if (hasOrders()) {
+    <ul class="order-list" role="list">
+      @for (order of orders(); track order.id) {
+        <li class="order-card">
+          <div class="order-main">
+            <span class="order-product">Ürün {{ order.productId }}</span>
+            <span class="order-qty">× {{ order.quantity }}</span>
+          </div>
+          <div class="order-meta">
+            <span>{{ order.customer ? (order.customer.firstName + ' ' + order.customer.lastName) : order.customerId }}</span>
+            <time [attr.datetime]="order.createdAt">{{ order.createdAt | date: 'd.M.yyyy HH:mm' }}</time>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="state state-empty">Henüz siparişiniz yok. <a routerLink="/urunler">Ürünlere göz atın</a>.</div>
+  }
+</div>

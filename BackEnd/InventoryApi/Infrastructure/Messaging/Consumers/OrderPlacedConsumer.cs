@@ -4,9 +4,6 @@ using InventoryApi.Application.UseCases;
 
 namespace InventoryApi.Infrastructure.Messaging.Consumers;
 
-/// <summary>
-/// DDD Infrastructure (Messaging): OrderPlaced integration event'ini dinler; stok düşümü application use case üzerinden yapılır.
-/// </summary>
 public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
 {
     private readonly ReduceStockUseCase _reduceStockUseCase;
@@ -21,17 +18,14 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedEvent>
     public async Task Consume(ConsumeContext<OrderPlacedEvent> context)
     {
         var msg = context.Message;
-        var result = await _reduceStockUseCase.ExecuteAsync(
-            msg.ProductName,
-            msg.Quantity,
-            context.CancellationToken);
+        var result = await _reduceStockUseCase.ExecuteAsync(msg.ProductId, msg.Quantity, context.CancellationToken);
 
         if (!result.Success)
-            _logger.LogWarning("OrderPlaced: {Reason}. ProductName={ProductName}, OrderId={OrderId}",
-                result.Reason, result.ProductName, msg.OrderId);
+            _logger.LogWarning("OrderPlaced: {Reason}. ProductId={ProductId}, OrderId={OrderId}",
+                result.Reason, result.ProductId, msg.OrderId);
         else
             _logger.LogInformation(
-                "OrderPlaced: Stok güncellendi. ProductName={ProductName}, OrderId={OrderId}, Düşülen={Deducted}, YeniStok={NewQuantity}",
-                result.ProductName, msg.OrderId, result.Deducted, result.NewQuantity);
+                "OrderPlaced: Stok güncellendi. ProductId={ProductId}, OrderId={OrderId}, Düşülen={Deducted}, YeniStok={NewQuantity}",
+                result.ProductId, msg.OrderId, result.Deducted, result.NewQuantity);
     }
 }

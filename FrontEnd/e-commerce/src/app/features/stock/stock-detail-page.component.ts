@@ -29,8 +29,17 @@ export class StockDetailPageComponent {
   protected readonly saveSuccess = signal(false);
   protected readonly saveError = signal<string | null>(null);
   protected readonly saving = signal(false);
+  protected readonly imageSuccess = signal(false);
+  protected readonly imageError = signal<string | null>(null);
+  protected readonly uploadingImage = signal(false);
+  protected readonly selectedImageFile = signal<File | null>(null);
 
-  protected readonly id = computed(() => Number(this.route.snapshot.paramMap.get('id')) ?? 0);
+  protected readonly id = computed(() => this.route.snapshot.paramMap.get('id') ?? '');
+
+  protected readonly imageUrl = computed(() => {
+    const id = this.id();
+    return id ? this.inventory.getImageUrl(id) : '';
+  });
 
   protected form = this.fb.nonNullable.group({
     quantity: [0, [Validators.required, Validators.min(0)]],
@@ -54,6 +63,44 @@ export class StockDetailPageComponent {
       error: () => {
         this.error.set('Stok detayı yüklenemedi. Giriş yapmanız gerekebilir.');
         this.loading.set(false);
+      },
+    });
+  }
+
+  protected onImageFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedImageFile.set(input.files?.[0] ?? null);
+    this.imageError.set(null);
+  }
+
+  protected onImageSubmit(): void {
+    const id = this.id();
+    const file = this.selectedImageFile();
+    if (!id || !file || this.item() == null) return;
+    this.imageError.set(null);
+    this.imageSuccess.set(false);
+    this.uploadingImage.set(true);
+    this.inventory.uploadImage(id, file).subscribe({
+      next: (res) => {
+        this.imageSuccess.set(true);
+        this.selectedImageFile.set(null);
+        this.uploadingImage.set(false);
+        this.inventory.getById(id).subscribe({
+          next: (updated) => {
+            if (updated) this.item.set(updated);
+          },
+        });
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ??
+          (err?.status === 404
+            ? 'API bulunamadı. InventoryApi bu adreste çalışıyor mu?'
+            : err?.status === 401
+              ? 'Oturum süresi dolmuş olabilir; tekrar giriş yapın.'
+              : 'Resim yüklenemedi. MinIO çalışıyor mu? (docker-compose)');
+        this.imageError.set(msg);
+        this.uploadingImage.set(false);
       },
     });
   }

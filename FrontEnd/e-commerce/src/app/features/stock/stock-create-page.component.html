@@ -1,0 +1,40 @@
+<article class="page" aria-labelledby="create-heading">
+  <header class="page-header">
+    <h1 id="create-heading">Stoka kalem ekle</h1>
+    <p class="page-desc">Ürün ve depo seçip miktar girin.</p>
+  </header>
+
+  @if (createError()) {
+    <p class="error" role="alert">{{ createError() }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="create-form">
+    <label for="productId">Ürün</label>
+    <select id="productId" formControlName="productId">
+      <option value="">Seçiniz</option>
+      @for (p of products(); track p.id) {
+        <option [value]="p.id">{{ p.name }}</option>
+      }
+    </select>
+
+    <label for="warehouseId">Depo</label>
+    <select id="warehouseId" formControlName="warehouseId">
+      <option value="">Seçiniz</option>
+      @for (w of warehouses(); track w.id) {
+        <option [value]="w.id">{{ w.name }}</option>
+      }
+    </select>
+
+    <label for="quantity">Miktar</label>
+    <input id="quantity" type="number" formControlName="quantity" min="0" />
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="form.invalid || saving()">
+        {{ saving() ? 'Kaydediliyor…' : 'Stok kalemi ekle' }}
+      </button>
+      <a routerLink="/stock" class="cancel-link">İptal</a>
+    </div>
+  </form>
+
+  <a routerLink="/stock" class="back-link">← Stok listesine dön</a>
+</article>

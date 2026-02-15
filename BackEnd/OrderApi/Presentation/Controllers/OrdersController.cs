@@ -9,21 +9,14 @@ using Shared.Api;
 
 namespace OrderApi.Presentation.Controllers;
 
-/// <summary>
-/// Sipariş API'si. CQRS (MediatR) + Saga/Outbox. Tüm yanıtlar ResultDto ile sarılı.
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public OrdersController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
+    public OrdersController(IMediator mediator) => _mediator = mediator;
 
-    /// <summary>Token gerekmez; genel bilgi.</summary>
     [HttpGet("public")]
     public IActionResult GetPublic() => Ok(ResultDto<object>.Success(new
     {
@@ -31,7 +24,6 @@ public class OrdersController : ControllerBase
         Time = DateTime.UtcNow
     }));
 
-    /// <summary>Tüm siparişler. Sadece Admin.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<ResultDto<IEnumerable<Order>>>> GetAll(CancellationToken cancellationToken)
@@ -40,7 +32,6 @@ public class OrdersController : ControllerBase
         return Ok(ResultDto<IEnumerable<Order>>.Success(list));
     }
 
-    /// <summary>Giriş yapan kullanıcının siparişleri. Admin veya User.</summary>
     [Authorize(Roles = "Admin,User")]
     [HttpGet("my")]
     public async Task<ActionResult<ResultDto<IEnumerable<Order>>>> GetMyOrders(CancellationToken cancellationToken)
@@ -50,7 +41,6 @@ public class OrdersController : ControllerBase
         return Ok(ResultDto<IEnumerable<Order>>.Success(list));
     }
 
-    /// <summary>Yeni sipariş oluştur. Stok yeterliliği baştan kontrol edilir; yetersizse hata döner.</summary>
     [Authorize(Roles = "Admin,User")]
     [HttpPost]
     public async Task<ActionResult<ResultDto<Order>>> Create([FromBody] CreateOrderRequest request, CancellationToken cancellationToken)
@@ -59,9 +49,9 @@ public class OrdersController : ControllerBase
         try
         {
             var result = await _mediator.Send(new CreateOrderCommand(
-                request.ProductName,
+                request.CustomerId,
+                request.ProductId,
                 request.Quantity,
-                request.CustomerName,
                 username), cancellationToken);
             if (!result.Success)
                 return BadRequest(ResultDto<Order>.Failure(result.ErrorMessage ?? "Sipariş oluşturulamadı."));

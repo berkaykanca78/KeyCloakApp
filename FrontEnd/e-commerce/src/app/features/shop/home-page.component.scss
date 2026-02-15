@@ -1,0 +1,123 @@
+.shop-page {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  letter-spacing: -0.02em;
+}
+
+.page-desc {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+}
+
+.state {
+  padding: 2rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.state-loading {
+  color: var(--color-text-muted);
+}
+
+.state-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.state-empty {
+  color: var(--color-text-muted);
+}
+
+.product-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.25rem;
+}
+
+@media (min-width: 480px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.product-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
+}
+
+.card-image-wrap {
+  position: relative;
+  aspect-ratio: 4/3;
+  background: var(--color-bg-subtle);
+  overflow: hidden;
+}
+
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+}
+
+.card-badge.in-stock {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.card-badge.out-of-stock {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.card-name {
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text-strong);
+}

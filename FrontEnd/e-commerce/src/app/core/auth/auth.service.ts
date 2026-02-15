@@ -24,6 +24,27 @@ export class AuthService {
     return this.accessToken();
   }
 
+  /** JWT'den roller (realm_access.roles veya role). Admin paneli için kullanılır. */
+  hasRole(role: string): boolean {
+    const token = this.accessToken();
+    if (!token) return false;
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) return false;
+      const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      const realmRoles = json.realm_access?.roles as string[] | undefined;
+      if (Array.isArray(realmRoles) && realmRoles.includes(role)) return true;
+      const r = json.role as string | undefined;
+      return r === role;
+    } catch {
+      return false;
+    }
+  }
+
+  isAdmin(): boolean {
+    return this.hasRole('Admin');
+  }
+
   private loadStoredAccessToken(): string | null {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
@@ -92,4 +113,22 @@ export class AuthService {
     this.accessToken.set(null);
     this.refreshToken.set(null);
   }
+
+  register(payload: RegisterPayload): Observable<{ message: string; userId: string } | null> {
+    return this.http
+      .post<{ message: string; userId: string }>(`${API_BASE}/api/auth/register`, payload)
+      .pipe(catchError(() => of(null)));
+  }
+}
+
+export interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  address?: string;
+  cityId?: number;
+  districtId?: number;
+  cardLast4?: string;
 }

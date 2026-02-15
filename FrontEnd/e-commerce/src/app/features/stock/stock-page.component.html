@@ -2,6 +2,7 @@
   <header class="page-header">
     <h1 id="stock-heading">Stok</h1>
     <p class="page-desc">{{ message() }}</p>
+    <a routerLink="/stock/create" class="link-add">+ Ürün ekle</a>
   </header>
 
   @if (loading()) {
@@ -12,6 +13,14 @@
     <ul class="stock-list" role="list">
       @for (item of items(); track item.id) {
         <li class="stock-row">
+          <img
+            [src]="imageUrl(item.id)"
+            alt=""
+            class="stock-thumb"
+            width="48"
+            height="48"
+            (error)="$any($event.target).style.display='none'"
+          />
           <span class="stock-name">{{ item.productName }}</span>
           <span
             class="badge"

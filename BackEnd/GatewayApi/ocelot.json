@@ -17,6 +17,22 @@
       "SwaggerKey": "auth"
     },
     {
+      "DownstreamPathTemplate": "/api/cities",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7225 }],
+      "UpstreamPathTemplate": "/api/cities",
+      "UpstreamHttpMethod": ["GET"],
+      "SwaggerKey": "auth"
+    },
+    {
+      "DownstreamPathTemplate": "/api/cities/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7225 }],
+      "UpstreamPathTemplate": "/api/cities/{everything}",
+      "UpstreamHttpMethod": ["GET"],
+      "SwaggerKey": "auth"
+    },
+    {
       "DownstreamPathTemplate": "/orders",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
@@ -29,6 +45,22 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
       "UpstreamPathTemplate": "/orders/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "orders"
+    },
+    {
+      "DownstreamPathTemplate": "/customers",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
+      "UpstreamPathTemplate": "/customers",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "SwaggerKey": "orders"
+    },
+    {
+      "DownstreamPathTemplate": "/customers/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{ "Host": "localhost", "Port": 7223 }],
+      "UpstreamPathTemplate": "/customers/{everything}",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "SwaggerKey": "orders"
     },

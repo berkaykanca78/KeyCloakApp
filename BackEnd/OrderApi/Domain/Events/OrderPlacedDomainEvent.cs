@@ -1,11 +1,8 @@
 namespace OrderApi.Domain.Events;
 
-/// <summary>
-/// Domain Event: Sipariş verildiğinde yayımlanır (stok düşümü için integration event'e dönüştürülür).
-/// </summary>
 public sealed record OrderPlacedDomainEvent
 {
-    public int OrderId { get; init; }
-    public string ProductName { get; init; } = string.Empty;
+    public Guid OrderId { get; init; }
+    public Guid ProductId { get; init; }
     public int Quantity { get; init; }
 }

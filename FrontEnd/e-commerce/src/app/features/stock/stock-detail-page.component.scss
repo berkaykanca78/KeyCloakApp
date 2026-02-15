@@ -21,6 +21,32 @@
   font-size: 0.9375rem;
 }
 
+.product-image {
+  display: block;
+  max-width: 16rem;
+  max-height: 12rem;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  border: 1px solid oklch(0.9 0.02 260);
+  margin-top: 0.75rem;
+}
+
+.image-section {
+  margin-bottom: 1.5rem;
+}
+
+.image-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.image-form input[type="file"] {
+  font-size: 0.9375rem;
+}
+
 .loading,
 .error {
   margin: 1rem 0;

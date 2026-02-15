@@ -4,9 +4,6 @@ using InventoryApi.Application.UseCases;
 
 namespace InventoryApi.Infrastructure.Messaging.Consumers;
 
-/// <summary>
-/// Saga request consumer: ReserveStockRequest alır, stok düşer, ReserveStockResponse döner.
-/// </summary>
 public class ReserveStockConsumer : IConsumer<ReserveStockRequest>
 {
     private readonly ReduceStockUseCase _reduceStockUseCase;
@@ -21,10 +18,7 @@ public class ReserveStockConsumer : IConsumer<ReserveStockRequest>
     public async Task Consume(ConsumeContext<ReserveStockRequest> context)
     {
         var msg = context.Message;
-        var result = await _reduceStockUseCase.ExecuteAsync(
-            msg.ProductName,
-            msg.Quantity,
-            context.CancellationToken);
+        var result = await _reduceStockUseCase.ExecuteAsync(msg.ProductId, msg.Quantity, context.CancellationToken);
 
         await context.RespondAsync(new ReserveStockResponse
         {
@@ -35,8 +29,8 @@ public class ReserveStockConsumer : IConsumer<ReserveStockRequest>
         });
 
         if (result.Success)
-            _logger.LogInformation("ReserveStock: OrderId={OrderId}, ProductName={ProductName}, Deducted={Deducted}",
-                msg.OrderId, result.ProductName, result.Deducted);
+            _logger.LogInformation("ReserveStock: OrderId={OrderId}, ProductId={ProductId}, Deducted={Deducted}",
+                msg.OrderId, result.ProductId, result.Deducted);
         else
             _logger.LogWarning("ReserveStock failed: OrderId={OrderId}, Reason={Reason}", msg.OrderId, result.Reason);
     }

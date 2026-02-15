@@ -1,0 +1,40 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <h1 class="page-title">Depo ekle</h1>
+    <p class="page-desc">Önce depo tanımlayın; sonra ürün eklerken bu depoyu seçebilirsiniz.</p>
+  </header>
+
+  @if (createError()) {
+    <div class="state state-error" role="alert">{{ createError() }}</div>
+  }
+
+  <div class="card form-card">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="depo-form">
+      <label for="name">Depo adı</label>
+      <input id="name" type="text" formControlName="name" placeholder="Örn. Ana Depo" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <span class="field-error">En az 2 karakter girin</span>
+      }
+      <label for="code">Kod (opsiyonel)</label>
+      <input id="code" type="text" formControlName="code" placeholder="Örn. DEPO-01" />
+      <label for="image">Depo resmi (opsiyonel, MinIO’ya kaydedilir)</label>
+      <input
+        id="image"
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        (change)="onImageFileChange($event)"
+      />
+      @if (selectedImageFile()) {
+        <span class="file-name">{{ selectedImageFile()!.name }}</span>
+      }
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Kaydediliyor…' : 'Depo ekle' }}
+        </button>
+        <a routerLink="/dashboard/depo" class="btn btn-ghost">İptal</a>
+      </div>
+    </form>
+  </div>
+
+  <a routerLink="/dashboard/depo" class="back-link">← Depo listesine dön</a>
+</div>

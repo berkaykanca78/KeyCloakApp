@@ -1,0 +1,46 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <h1 class="page-title">Ürün ekle</h1>
+    <p class="page-desc">Ürün adını girin ve en az bir depo seçin. Deposu olmayan ürün eklenemez.</p>
+  </header>
+
+  @if (createError()) {
+    <div class="state state-error" role="alert">{{ createError() }}</div>
+  }
+
+  <div class="card form-card">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="product-form">
+      <label for="name">Ürün adı</label>
+      <input id="name" type="text" formControlName="name" placeholder="Örn. Kablosuz Mouse" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <span class="field-error">En az 2 karakter girin</span>
+      }
+
+      <label>Depolar (en az birini seçin)</label>
+      @if (warehouses().length === 0) {
+        <p class="hint">Henüz depo yok. <a routerLink="/dashboard/depo/yeni">Önce depo ekleyin</a>.</p>
+      } @else {
+        <div class="warehouse-checkboxes">
+          @for (w of warehouses(); track w.id) {
+            <label class="checkbox-label">
+              <input type="checkbox" [checked]="isSelected(w.id)" (change)="toggleWarehouse(w.id)" />
+              <span>{{ w.name }}</span>
+            </label>
+          }
+        </div>
+      }
+
+      <label for="initialQuantity">Başlangıç miktarı</label>
+      <input id="initialQuantity" type="number" formControlName="initialQuantity" min="0" />
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving() || warehouses().length === 0">
+          {{ saving() ? 'Kaydediliyor…' : 'Ürün ekle' }}
+        </button>
+        <a routerLink="/dashboard/urunler" class="btn btn-ghost">İptal</a>
+      </div>
+    </form>
+  </div>
+
+  <a routerLink="/dashboard/urunler" class="back-link">← Ürün listesine dön</a>
+</div>
