@@ -51,6 +51,12 @@
   gap: 1.25rem;
 }
 
+.product-grid > li {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
 @media (min-width: 480px) {
   .product-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -119,5 +125,33 @@
   padding: 1rem;
   font-weight: 600;
   font-size: 1rem;
+  color: var(--color-text-strong);
+}
+
+.product-grid .btn-add-basket {
+  margin: 0 1rem 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary, #2563eb);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.product-grid .btn-add-basket:hover {
+  background: var(--color-border);
+}
+
+.product-grid .btn-add-basket--login {
+  color: var(--color-text-muted);
+}
+
+.product-grid .btn-add-basket--login:hover {
   color: var(--color-text-strong);
 }

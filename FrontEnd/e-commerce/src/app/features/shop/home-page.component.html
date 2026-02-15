@@ -27,6 +27,15 @@
             </span>
             <span class="card-name">{{ item.productName }}</span>
           </a>
+          @if (item.inStock) {
+            @if (auth.isAuthenticated()) {
+              <button type="button" class="btn-add-basket" (click)="addToBasket(item); $event.preventDefault(); $event.stopPropagation()">
+                Sepete ekle
+              </button>
+            } @else {
+              <a routerLink="/login" class="btn-add-basket btn-add-basket--login" (click)="$event.stopPropagation()">Giriş yapıp sepete ekle</a>
+            }
+          }
         </li>
       }
     </ul>

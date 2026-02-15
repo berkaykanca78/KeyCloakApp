@@ -1,0 +1,45 @@
+@Basket_Host = http://localhost:5204
+@Basket_Id = BURAYA_BASKET_ID_YAZIN_veya_ilk_GET_sonrasi_response_header_X-Basket-Id_kullanin
+
+### Sepeti getir (X-Basket-Id yoksa yeni id döner)
+GET {{Basket_Host}}/api/basket
+X-Basket-Id: {{Basket_Id}}
+Accept: application/json
+
+###
+### Sepete ürün ekle
+POST {{Basket_Host}}/api/basket/items
+X-Basket-Id: {{Basket_Id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "productId": "urn:product:1",
+  "productName": "Örnek Ürün",
+  "inventoryItemId": "inv-1",
+  "quantity": 2,
+  "unitPrice": 99.99,
+  "currency": "TRY"
+}
+
+###
+### Miktar güncelle
+PUT {{Basket_Host}}/api/basket/items/urn:product:1
+X-Basket-Id: {{Basket_Id}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "quantity": 3
+}
+
+###
+### Sepetten kaldır
+DELETE {{Basket_Host}}/api/basket/items/urn:product:1
+X-Basket-Id: {{Basket_Id}}
+Accept: application/json
+
+###
+### Sepeti temizle
+DELETE {{Basket_Host}}/api/basket
+X-Basket-Id: {{Basket_Id}}

@@ -1,8 +1,9 @@
 <Solution>
-  <Project Path="GatewayApi/GatewayApi.csproj" />
-  <Project Path="OrderApi/OrderApi.csproj" />
-  <Project Path="InventoryApi/InventoryApi.csproj" />
-  <Project Path="AuthApi/AuthApi.csproj" />
+  <Project Path="Basket.API/Basket.API.csproj" Id="e622f0e1-b0da-42e3-9fb2-d471c06b8f09" />
+  <Project Path="Gateway.API/Gateway.API.csproj" />
+  <Project Path="Inventory.API/Inventory.API.csproj" />
+  <Project Path="Ordering.API/Ordering.API.csproj" />
+  <Project Path="Identity.API/Identity.API.csproj" />
   <Project Path="Shared.Api/Shared.Api.csproj" />
   <Project Path="Shared.Events/Shared.Events.csproj" />
 </Solution>

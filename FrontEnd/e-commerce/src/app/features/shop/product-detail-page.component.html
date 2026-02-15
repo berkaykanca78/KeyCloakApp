@@ -30,13 +30,18 @@
               <p class="msg error">{{ orderError() }}</p>
             }
             @if (item()!.inStock) {
-              <form [formGroup]="form" (ngSubmit)="onSubmit()" class="order-form">
-                <label for="qty">Adet</label>
-                <input id="qty" type="number" formControlName="quantity" min="1" />
-                <button type="submit" [disabled]="form.invalid || orderSending()">
-                  {{ orderSending() ? 'Gönderiliyor…' : 'Sipariş ver' }}
+              <div class="detail-actions">
+                <form [formGroup]="form" (ngSubmit)="onSubmit()" class="order-form">
+                  <label for="qty">Adet</label>
+                  <input id="qty" type="number" formControlName="quantity" min="1" />
+                  <button type="submit" [disabled]="form.invalid || orderSending()">
+                    {{ orderSending() ? 'Gönderiliyor…' : 'Sipariş ver' }}
+                  </button>
+                </form>
+                <button type="button" class="btn-add-basket" (click)="addToBasket()" [disabled]="form.invalid">
+                  Sepete ekle
                 </button>
-              </form>
+              </div>
             }
           </section>
         } @else {

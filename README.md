@@ -33,7 +33,7 @@
 
 ## 📌 Bu Proje
 
-Bu depo, Keycloak ile entegre **AuthApi**, **OrderApi** ve **InventoryApi** örnek uygulamalarını içerir. Keycloak kurulumu ve kullanımı için `KEYCLOAK_KURULUM.md` dosyasına bakabilirsiniz.
+Bu depo, Keycloak ile entegre **Identity.API**, **Ordering.API** ve **Inventory.API** örnek uygulamalarını içerir. Keycloak kurulumu ve kullanımı için `KEYCLOAK_KURULUM.md` dosyasına bakabilirsiniz.
 
 ---
 
@@ -57,30 +57,30 @@ Projede iki **realm rolü** tanımlıdır:
 
 ## 🔗 Endpoint’ler ve Erişim
 
-**OrderApi (Sipariş):** `GET /orders/public` (herkes), `GET /orders` (Admin), `GET /orders/my` ve `POST /orders` (Admin veya User).
+**Ordering.API (Sipariş):** `GET /orders/public` (herkes), `GET /orders` (Admin), `GET /orders/my` ve `POST /orders` (Admin veya User).
 
-**InventoryApi (Stok):** `GET /inventory/public` (herkes), `GET /inventory` ve `PUT /inventory/{id}` (Admin), `GET /inventory/{id}` (Admin veya User).
+**Inventory.API (Stok):** `GET /inventory/public` (herkes), `GET /inventory` ve `PUT /inventory/{id}` (Admin), `GET /inventory/{id}` (Admin veya User).
 
-Giriş **AuthApi** üzerinden yapılır; dönen **access_token** ile isteklerde `Authorization: Bearer <token>` kullanılır. User bilgisi, token’daki `preferred_username` claim’inden okunur; yanıtta hangi kullanıcıyla giriş yapıldıysa o kullanıcı adı döner.
+Giriş **Identity.API** üzerinden yapılır; dönen **access_token** ile isteklerde `Authorization: Bearer <token>` kullanılır. User bilgisi, token’daki `preferred_username` claim’inden okunur; yanıtta hangi kullanıcıyla giriş yapıldıysa o kullanıcı adı döner.
 
 ---
 
 ## Ocelot API Gateway
 
-Tüm API'ler tek giriş noktasından (**http://localhost:5000**) erişilebilir. Gateway (GatewayApi) istekleri arka plandaki servislere yönlendirir.
+Tüm API'ler tek giriş noktasından (**http://localhost:5000**) erişilebilir. Gateway (Gateway.API) istekleri arka plandaki servislere yönlendirir.
 
 | Gateway (tek adres) | Yönlendirme |
 |---------------------|-------------|
-| `http://localhost:5000/api/auth/*` | → AuthApi (5200) |
-| `http://localhost:5000/orders/*`   | → OrderApi (5198) |
-| `http://localhost:5000/inventory/*` | → InventoryApi (5131) |
+| `http://localhost:5000/api/auth/*` | → Identity.API (5200) |
+| `http://localhost:5000/orders/*`   | → Ordering.API (5198) |
+| `http://localhost:5000/inventory/*` | → Inventory.API (5131) |
 
 ### Gateway Swagger (hepsine tek UI'dan istek)
 
 Gateway'de **tek bir Swagger UI** var; Auth, Order ve Inventory API'leri açılır menüden seçilir, tüm istekler **Gateway (5000)** üzerinden gider, Ocelot ilgili servise yönlendirir.
 
 - **Adres:** http://localhost:5000/swagger  
-- Üstteki dropdown'dan **Auth API**, **Order API** veya **Inventory API** seç; "Try it out" ile denediğin istekler otomatik olarak `http://localhost:5000/...` adresine gider.
+- Üstteki dropdown'dan **Identity.API**, **Ordering.API** veya **Inventory API** seç; "Try it out" ile denediğin istekler otomatik olarak `http://localhost:5000/...` adresine gider.
 
 **Gereksinim:** Auth, Order ve Inventory API'leri çalışır olmalı (5200, 5198, 5131); Gateway başlarken her birinin `/swagger/v1/swagger.json` adresinden dokümanı çeker.
 
@@ -93,18 +93,18 @@ Gateway'de **tek bir Swagger UI** var; Auth, Order ve Inventory API'leri açıl�
 
 2. **Migration'ları uygula** (henüz yapmadıysan)
    ```bash
-   dotnet ef database update --project InventoryApi --startup-project InventoryApi
-   dotnet ef database update --project OrderApi --startup-project OrderApi
+   dotnet ef database update --project Inventory.API --startup-project Inventory.API
+   dotnet ef database update --project Ordering.API --startup-project Ordering.API
    ```
 
 3. **Üç mikroservisi ayağa kaldır** (her biri ayrı terminalde veya IDE ile çoklu startup)
-   - **AuthApi:** `dotnet run --project AuthApi` → http://localhost:5200
-   - **OrderApi:** `dotnet run --project OrderApi` → http://localhost:5198
-   - **InventoryApi:** `dotnet run --project InventoryApi` → http://localhost:5131
+   - **Identity.API:** `dotnet run --project Identity.API` → http://localhost:5200
+   - **Ordering.API:** `dotnet run --project Ordering.API` → http://localhost:5198
+   - **Inventory.API:** `dotnet run --project Inventory.API` → http://localhost:5131
 
 4. **Gateway'i çalıştır**
    ```bash
-   dotnet run --project GatewayApi
+   dotnet run --project Gateway.API
    ```
    Gateway http://localhost:5000 üzerinde dinler.
 
@@ -114,14 +114,14 @@ Gateway'de **tek bir Swagger UI** var; Auth, Order ve Inventory API'leri açıl�
    - Stok: `GET http://localhost:5000/inventory/public`
    - Token ile: `Authorization: Bearer <access_token>` header'ı aynen kullanılır.
 
-**Not:** Portları değiştirirsen `GatewayApi/ocelot.json` içindeki `DownstreamHostAndPorts` değerlerini (5200, 5198, 5131) güncelle. Geliştirme ortamı için `ocelot.Development.json` ile override da yapabilirsin.
+**Not:** Portları değiştirirsen `Gateway.API/ocelot.json` içindeki `DownstreamHostAndPorts` değerlerini (5200, 5198, 5131) güncelle. Geliştirme ortamı için `ocelot.Development.json` ile override da yapabilirsin.
 
 ---
 
 ## Veritabanları ve Migration
 
-- **InventoryApi** → **PostgreSQL** (veritabanı adı: `Inventory`, localhost:5432).
-- **OrderApi** → **MSSQL / T-SQL** (veritabanı adı: `Order`, localhost:1433).
+- **Inventory.API** → **PostgreSQL** (veritabanı adı: `Inventory`, localhost:5432).
+- **Ordering.API** → **MSSQL / T-SQL** (veritabanı adı: `Order`, localhost:1433).
 
 ### 1. Veritabanlarını ayağa kaldırma
 
@@ -137,10 +137,10 @@ Veritabanları çalışırken, proje kökünden:
 
 ```bash
 # Inventory (PostgreSQL)
-dotnet ef database update --project InventoryApi --startup-project InventoryApi
+dotnet ef database update --project Inventory.API --startup-project Inventory.API
 
 # Order (MSSQL)
-dotnet ef database update --project OrderApi --startup-project OrderApi
+dotnet ef database update --project Ordering.API --startup-project Ordering.API
 ```
 
 İlk migration'dan sonra Inventory tablosuna örnek 3 stok kaydı (seed) eklenir.
@@ -149,7 +149,7 @@ dotnet ef database update --project OrderApi --startup-project OrderApi
 
 ## RabbitMQ (Mesaj Kuyruğu)
 
-Servisler arasında **event tabanlı iletişim** için **RabbitMQ** kullanılır. Sipariş verildiğinde OrderApi bir event yayımlar; InventoryApi bu event'i dinleyerek stoktan düşüm yapar. Altyapı olarak **MassTransit** ile **RabbitMQ** entegre edilmiştir.
+Servisler arasında **event tabanlı iletişim** için **RabbitMQ** kullanılır. Sipariş verildiğinde Ordering.API bir event yayımlar; Inventory.API bu event'i dinleyerek stoktan düşüm yapar. Altyapı olarak **MassTransit** ile **RabbitMQ** entegre edilmiştir.
 
 ### RabbitMQ'yu çalıştırma
 
@@ -165,7 +165,7 @@ docker-compose up -d rabbitmq postgres mssql
 
 | Bileşen        | Port  | Açıklama                          |
 |----------------|-------|-----------------------------------|
-| AMQP (mesajlar) | 5672  | OrderApi ve InventoryApi bu porta bağlanır. |
+| AMQP (mesajlar) | 5672  | Ordering.API ve Inventory.API bu porta bağlanır. |
 | Yönetim arayüzü | 15672 | Tarayıcıdan kuyruk/exchange takibi. |
 
 ### Yönetim arayüzü
@@ -176,13 +176,13 @@ docker-compose up -d rabbitmq postgres mssql
 
 Arayüzde:
 
-- **Exchanges:** OrderApi'nin event yayımladığı exchange (örn. `Shared.Events:OrderPlacedEvent`).
-- **Queues:** InventoryApi'nin dinlediği kuyruk; mesaj sayıları (Ready / Unacked) burada görünür.
+- **Exchanges:** Ordering.API'nin event yayımladığı exchange (örn. `Shared.Events:OrderPlacedEvent`).
+- **Queues:** Inventory.API'nin dinlediği kuyruk; mesaj sayıları (Ready / Unacked) burada görünür.
 - Bir kuyruğa tıklayıp **Get messages** ile event içeriğini (JSON) okuyabilirsin.
 
 ### Yapılandırma
 
-OrderApi ve InventoryApi `appsettings.json` içinde RabbitMQ ayarlarını kullanır:
+Ordering.API ve Inventory.API `appsettings.json` içinde RabbitMQ ayarlarını kullanır:
 
 ```json
 "RabbitMQ": { "Host": "localhost", "Username": "guest", "Password": "guest" }
@@ -194,38 +194,38 @@ Docker dışında (örn. cloud) RabbitMQ kullanıyorsan sadece `Host`, `Username
 
 ## CQRS, Saga ve Outbox Pattern
 
-**OrderApi** aşağıdaki mimari pattern'leri kullanır:
+**Ordering.API** aşağıdaki mimari pattern'leri kullanır:
 
 | Pattern | Açıklama |
 |--------|----------|
 | **CQRS (MediatR)** | Komutlar (`CreateOrderCommand`) ve sorgular (`GetOrdersQuery`, `GetMyOrdersQuery`) ayrılır; handler'lar tek sorumluluk taşır. |
 | **Outbox** | Sipariş kaydı ile `OrderPlacedEvent` aynı veritabanı işlemine yazılır; `OutboxMessages` tablosuna kaydedilir, arka planda **OutboxPublisherHostedService** RabbitMQ'ya publish eder. Böylece "kayıt tamamlandı ama mesaj gitmedi" riski azalır. |
-| **Saga (orchestration)** | `OrderPlacedEvent` gelince **OrderStateMachine** tetiklenir; InventoryApi'ye **ReserveStockRequest** (request/response) gönderilir. Başarılıysa saga tamamlanır; stok yetersiz veya hata olursa **OrderCancelledEvent** yayımlanır (compensation). |
+| **Saga (orchestration)** | `OrderPlacedEvent` gelince **OrderStateMachine** tetiklenir; Inventory.API'ye **ReserveStockRequest** (request/response) gönderilir. Başarılıysa saga tamamlanır; stok yetersiz veya hata olursa **OrderCancelledEvent** yayımlanır (compensation). |
 
 ### Akış (Saga + Outbox)
 
-1. Kullanıcı **OrderApi**'ye `POST /orders` ile sipariş gönderir.
+1. Kullanıcı **Ordering.API**'ye `POST /orders` ile sipariş gönderir.
 2. **CreateOrderCommandHandler** (MediatR): Siparişi kaydeder, **OutboxMessages** tablosuna `OrderPlacedEvent` ekler (transactional).
 3. **OutboxPublisherHostedService** periyodik olarak bekleyen mesajları RabbitMQ'ya publish eder.
 4. **OrderStateMachine** (Saga) `OrderPlacedEvent`'i alır → **ReserveStockRequest** gönderir.
-5. **InventoryApi** `ReserveStockConsumer` ile isteği işler, stok düşer, **ReserveStockResponse** döner.
+5. **Inventory.API** `ReserveStockConsumer` ile isteği işler, stok düşer, **ReserveStockResponse** döner.
 6. Saga yanıta göre tamamlanır veya **OrderCancelledEvent** yayımlar.
 
 ### Paylaşılan mesajlar (Shared.Events)
 
 | Mesaj | Yön | Açıklama |
 |-------|-----|----------|
-| **OrderPlacedEvent** | OrderApi → Saga | CorrelationId, OrderId, ProductName, Quantity |
-| **ReserveStockRequest** | Saga → InventoryApi | Stok rezervasyon isteği |
-| **ReserveStockResponse** | InventoryApi → Saga | Success, Reason |
+| **OrderPlacedEvent** | Ordering.API → Saga | CorrelationId, OrderId, ProductName, Quantity |
+| **ReserveStockRequest** | Saga → Inventory.API | Stok rezervasyon isteği |
+| **ReserveStockResponse** | Inventory.API → Saga | Success, Reason |
 | **OrderCancelledEvent** | Saga → (log/compensation) | İptal nedeni |
 
 ### Teknik detay
 
-- **CQRS:** MediatR, `OrderApi.Application.Commands`, `OrderApi.Application.Queries`
-- **Outbox:** `OrderApi.Infrastructure.Persistence.OutboxMessage`, `OrderApi.Infrastructure.Outbox.OutboxPublisherHostedService`
-- **Saga:** MassTransit state machine, `OrderApi.Application.Saga.OrderStateMachine`, `OrderSagaState` (InMemory repository)
-- **InventoryApi:** Sadece **ReserveStockConsumer** (request/response); eski `OrderPlacedConsumer` saga kullanıldığı için devre dışı.
+- **CQRS:** MediatR, `Ordering.API.Application.Commands`, `Ordering.API.Application.Queries`
+- **Outbox:** `Ordering.API.Infrastructure.Persistence.OutboxMessage`, `Ordering.API.Infrastructure.Outbox.OutboxPublisherHostedService`
+- **Saga:** MassTransit state machine, `Ordering.API.Application.Saga.OrderStateMachine`, `OrderSagaState` (InMemory repository)
+- **Inventory.API:** Sadece **ReserveStockConsumer** (request/response); eski `OrderPlacedConsumer` saga kullanıldığı için devre dışı.
 
 ---
 

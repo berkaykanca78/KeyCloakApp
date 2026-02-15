@@ -64,7 +64,7 @@ export interface KeycloakTokenResponse {
   token_type?: string;
 }
 
-/** Sipariş (OrderApi) */
+/** Sipariş (Ordering.API) */
 export interface Order {
   id: string;
   customerId: string;
@@ -80,4 +80,30 @@ export interface CreateOrderRequest {
   customerId: string;
   productId: string;
   quantity: number;
+}
+
+/** Sepet kalemi (Basket.API) */
+export interface BasketItemDto {
+  productId: string;
+  productName: string;
+  inventoryItemId?: string | null;
+  quantity: number;
+  unitPrice?: number | null;
+  currency?: string | null;
+}
+
+/** Müşteri sepeti (Basket.API) */
+export interface CustomerBasketDto {
+  buyerId: string;
+  items: BasketItemDto[];
+}
+
+/** Sepete ekleme isteği (POST /api/basket/items) */
+export interface AddBasketItemRequest {
+  productId: string;
+  productName: string;
+  inventoryItemId?: string | null;
+  quantity: number;
+  unitPrice?: number | null;
+  currency?: string | null;
 }

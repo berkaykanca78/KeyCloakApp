@@ -1,0 +1,72 @@
+<div class="basket-page container">
+  <header class="page-header">
+    <h1 class="page-title">Sepetim</h1>
+    <a routerLink="/urunler" class="back-link">← Ürünlere dön</a>
+  </header>
+
+  @if (loading()) {
+    <div class="state state-loading">Yükleniyor…</div>
+  } @else if (error()) {
+    <div class="state state-error" role="alert">{{ error() }}</div>
+  } @else if (isEmpty()) {
+    <div class="state state-empty">Sepetiniz boş. <a routerLink="/urunler">Ürünlere göz atın</a>.</div>
+  } @else {
+    @if (orderSuccess()) {
+      <div class="state state-success" role="status">Siparişiniz alındı, yönlendiriliyorsunuz…</div>
+    } @else {
+      @if (orderError()) {
+        <div class="state state-error" role="alert">{{ orderError() }}</div>
+      }
+      <div class="basket-actions">
+        <button type="button" class="btn-clear" (click)="clear()">Sepeti temizle</button>
+      </div>
+      <ul class="basket-list" role="list">
+        @for (item of items(); track item.productId) {
+          <li class="basket-item">
+            <div class="basket-item-image">
+              @if (item.inventoryItemId) {
+                <img
+                  [src]="imageUrl(item.inventoryItemId)"
+                  [alt]="item.productName"
+                  width="80"
+                  height="80"
+                  (error)="$any($event.target).style.display='none'"
+                />
+              } @else {
+                <span class="no-image">Ürün</span>
+              }
+            </div>
+            <div class="basket-item-info">
+              <span class="basket-item-name">{{ item.productName }}</span>
+              @if (item.unitPrice != null) {
+                <span class="basket-item-price">{{ item.unitPrice | number:'1.2-2' }} {{ item.currency ?? 'TRY' }}</span>
+              }
+            </div>
+            <div class="basket-item-qty">
+              <label [for]="'qty-' + item.productId">Adet</label>
+              <input
+                [id]="'qty-' + item.productId"
+                type="number"
+                [value]="item.quantity"
+                min="1"
+                (change)="updateQty(item.productId, +$any($event.target).value)"
+              />
+            </div>
+            <button type="button" class="btn-remove" (click)="remove(item.productId)" aria-label="Kaldır">
+              Kaldır
+            </button>
+          </li>
+        }
+      </ul>
+      <div class="basket-footer">
+        @if (auth.isAuthenticated()) {
+          <button type="button" class="btn-place-order" (click)="placeOrder()" [disabled]="orderSending()">
+            {{ orderSending() ? 'Sipariş oluşturuluyor…' : 'Sipariş ver' }}
+          </button>
+        } @else {
+          <p class="order-hint">Sipariş vermek için <a routerLink="/giris">giriş yapın</a>.</p>
+        }
+      </div>
+    }
+  }
+</div>

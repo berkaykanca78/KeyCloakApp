@@ -108,6 +108,26 @@
   color: var(--color-primary);
 }
 
+.nav-basket {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.basket-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: 999px;
+}
+
 @media (min-width: 768px) {
   .menu-toggle {
     display: none;

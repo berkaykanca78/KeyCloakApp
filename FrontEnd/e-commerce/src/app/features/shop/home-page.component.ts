@@ -5,9 +5,12 @@ import {
   signal,
   computed,
 } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { RouterLink } from '@angular/router';
 import { InventoryService } from '../../core/api/inventory.service';
+import { AuthService } from '../../core/auth/auth.service';
 import type { InventoryPublicItem } from '../../core/api/api-types';
+import { BasketActions } from '../../features/basket/state/basket.actions';
 
 @Component({
   selector: 'app-home-page',
@@ -18,6 +21,8 @@ import type { InventoryPublicItem } from '../../core/api/api-types';
 })
 export class HomePageComponent {
   private readonly inventory = inject(InventoryService);
+  private readonly store = inject(Store);
+  protected readonly auth = inject(AuthService);
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -39,5 +44,20 @@ export class HomePageComponent {
 
   protected imageUrl(id: string): string {
     return this.inventory.getImageUrl(id);
+  }
+
+  protected addToBasket(item: InventoryPublicItem): void {
+    this.store.dispatch(
+      BasketActions.addToBasket({
+        request: {
+          productId: item.productId,
+          productName: item.productName,
+          inventoryItemId: item.id,
+          quantity: 1,
+          unitPrice: item.unitPrice ?? item.priceAfterDiscount ?? undefined,
+          currency: item.currency ?? undefined,
+        },
+      })
+    );
   }
 }

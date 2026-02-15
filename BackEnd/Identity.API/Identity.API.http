@@ -1,0 +1,34 @@
+### Identity.API - (Admin) - Login (Keycloak'tan access_token alır)
+POST http://localhost:5200/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+### Identity.API - (User) - Login (Keycloak'tan access_token alır)
+POST http://localhost:5200/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "user"
+}
+
+###
+### Identity.API - Profile (Bearer token ile kendi bilgileriniz)
+# Önce login yapıp access_token'ı alın; Authorization header'da kullanın.
+GET http://localhost:5200/api/auth/profile
+Authorization: Bearer BURAYA_ACCESS_TOKEN_YAPIŞTIRIN
+Accept: application/json
+
+###
+### Identity.API - Refresh (yeni access_token alır)
+# Önce login yapıp refresh_token'ı kopyalayın, aşağıya yapıştırın.
+POST http://localhost:5200/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "BURAYA_REFRESH_TOKEN_YAPIŞTIRIN"
+}

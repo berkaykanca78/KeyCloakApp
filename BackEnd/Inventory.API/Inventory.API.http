@@ -1,0 +1,31 @@
+@InventoryAPI_HostAddress = http://localhost:5131
+@Bearer_Token = BURAYA_ACCESS_TOKEN_YAPIŞTIRIN
+
+### Herkese açık ürün listesi
+GET {{InventoryAPI_HostAddress}}/api/inventory/public
+Accept: application/json
+
+###
+### Tüm stok (Admin)
+GET {{InventoryAPI_HostAddress}}/api/inventory
+Authorization: Bearer {{Bearer_Token}}
+Accept: application/json
+
+###
+### Tek ürün stok (Admin veya User)
+GET {{InventoryAPI_HostAddress}}/api/inventory/1
+Authorization: Bearer {{Bearer_Token}}
+Accept: application/json
+
+###
+### Stok güncelle (Admin)
+PUT {{InventoryAPI_HostAddress}}/api/inventory/1
+Authorization: Bearer {{Bearer_Token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "quantity": 25
+}
+
+###

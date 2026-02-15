@@ -1,6 +1,6 @@
 # KeyCloak ile Ortak JWT Giriş Rehberi
 
-Bu projede **AuthApi** (giriş API’si), **OrderApi** ve **InventoryApi** birlikte kullanılıyor. Kullanıcı **AuthApi** üzerinden giriş yapar, Keycloak’tan alınan **access_token** döner; bu token **OrderApi** ve **InventoryApi** isteklerinde **Authorization** header’ında taşınır. Tek token ile her iki API’ye de erişilir.
+Bu projede **Identity.API** (giriş API’si), **Ordering.API** ve **Inventory.API** birlikte kullanılıyor. Kullanıcı **Identity.API** üzerinden giriş yapar, Keycloak’tan alınan **access_token** döner; bu token **Ordering.API** ve **Inventory.API** isteklerinde **Authorization** header’ında taşınır. Tek token ile her iki API’ye de erişilir.
 
 ---
 
@@ -58,7 +58,7 @@ Tarayıcıda açıp giriş yapın.
 ### 3.3 Client’e Audience (Mapper) Eklemek
 
 **Neden gerekli?**  
-JWT token içinde **aud** (audience) adında bir alan vardır. OrderApi ve InventoryApi, `appsettings.json` içinde `"Audience": "backend-api"` ile çalışıyor; yani gelen token’da **aud = backend-api** olmalı ki API isteği kabul etsin. KeyCloak varsayılan olarak access token’a her zaman bu değeri koymaz. Bu yüzden “token’a audience olarak backend-api ekle” kuralını (mapper) biz tanımlıyoruz.
+JWT token içinde **aud** (audience) adında bir alan vardır. Ordering.API ve Inventory.API, `appsettings.json` içinde `"Audience": "backend-api"` ile çalışıyor; yani gelen token’da **aud = backend-api** olmalı ki API isteği kabul etsin. KeyCloak varsayılan olarak access token’a her zaman bu değeri koymaz. Bu yüzden “token’a audience olarak backend-api ekle” kuralını (mapper) biz tanımlıyoruz.
 
 **Ne yapıyoruz?**  
 KeyCloak’a diyoruz: “Bu client için ürettiğin token’ların içine **aud** alanında **backend-api** yaz.” Böylece API’lerimiz token’ı doğrulayabiliyor.
@@ -128,8 +128,8 @@ Bundan sonra giriş yapan kullanıcının realm rolleri access token’da `role`
 
 | Kullanıcı | Şifre (örnek) | Rol  | Erişebildiği endpoint’ler                          |
 |-----------|----------------|------|---------------------------------------------------|
-| admin     | admin          | Admin | Tüm yetkili (OrderApi: GET /api/orders, POST /api/orders; InventoryApi: GET /api/inventory, PUT /api/inventory/{id}; GET/POST /api/products, /api/warehouses) |
-| user      | user           | User  | OrderApi: GET /api/orders/my, POST /api/orders; InventoryApi: GET /api/inventory/{id} |
+| admin     | admin          | Admin | Tüm yetkili (Ordering.API: GET /api/orders, POST /api/orders; Inventory.API: GET /api/inventory, PUT /api/inventory/{id}; GET/POST /api/products, /api/warehouses) |
+| user      | user           | User  | Ordering.API: GET /api/orders/my, POST /api/orders; Inventory.API: GET /api/inventory/{id} |
 
 ### 3.6 Yeni kullanıcı ekleme (isteğe bağlı)
 
@@ -177,45 +177,48 @@ curl -X POST "http://localhost:8080/realms/KeyCloakApp/protocol/openid-connect/t
 
 Yanıttaki `access_token` değerini kopyalayın.
 
-### Yöntem C: AuthApi ile login (önerilen)
+### Yöntem C: Identity.API ile login (önerilen)
 
-**AuthApi**, Keycloak’a sizin yerinize istek atıp **access_token** döndüren ayrı bir API’dir. Tüm girişler bu API üzerinden yapılır; dönen token OrderApi ve InventoryApi’te **Authorization: Bearer &lt;token&gt;** ile kullanılır.
+**Identity.API**, Keycloak’a sizin yerinize istek atıp **access_token** döndüren ayrı bir API’dir. Tüm girişler bu API üzerinden yapılır; dönen token Ordering.API ve Inventory.API’te **Authorization: Bearer &lt;token&gt;** ile kullanılır.
 
-1. **AuthApi**’yi çalıştırın (bkz. 5.1).
+1. **Identity.API**’yi çalıştırın (bkz. 5.1).
 2. **POST** isteği atın:
    - **URL:** `http://localhost:5200/api/auth/login` (veya `https://localhost:7225/api/auth/login`)
    - **Body (JSON):** `{ "username": "user", "password": "user" }`
    - **Content-Type:** `application/json`
-3. Yanıtta `access_token` ve isteğe bağlı `refresh_token` gelir. Bu **access_token**’ı OrderApi ve InventoryApi isteklerinde **Authorization** header’ında kullanın.
+3. Yanıtta `access_token` ve isteğe bağlı `refresh_token` gelir. Bu **access_token**’ı Ordering.API ve Inventory.API isteklerinde **Authorization** header’ında kullanın.
 
 Refresh token ile yeni access token almak için: **POST** `http://localhost:5200/api/auth/refresh` — Body: `{ "refreshToken": "BURAYA_REFRESH_TOKEN" }`.
 
-AuthApi ayarları (`AuthApi/appsettings.json`): **Keycloak:Authority**, **Keycloak:ClientId**, **Keycloak:ClientSecret**. Client secret Keycloak’taki **backend-api** client’ının secret’i ile aynı olmalı.
+Identity.API ayarları (`Identity.API/appsettings.json`): **Keycloak:Authority**, **Keycloak:ClientId**, **Keycloak:ClientSecret**. Client secret Keycloak’taki **backend-api** client’ının secret’i ile aynı olmalı.
 
 ---
 
 ## 5. API’leri Çalıştırma ve Token ile Çağırma
 
-### 5.1 AuthApi, OrderApi ve InventoryApi’i Çalıştırma
+### 5.1 Identity.API, Ordering.API ve Inventory.API’i Çalıştırma
 
 - Visual Studio’dan projeleri ayrı ayrı çalıştırabilirsiniz (F5 veya “Run”).
 - Veya terminalde:
-  - **AuthApi:** `AuthApi` klasöründe `dotnet run` → `http://localhost:5200` / `https://localhost:7225`
-  - **OrderApi:** `OrderApi` klasöründe `dotnet run` → `http://localhost:5198` / `https://localhost:7223`
-  - **InventoryApi:** `InventoryApi` klasöründe `dotnet run` → `http://localhost:5131` / `https://localhost:7067`
+  - **Identity.API:** `Identity.API` klasöründe `dotnet run` → `http://localhost:5200` / `https://localhost:7225`
+  - **Ordering.API:** `Ordering.API` klasöründe `dotnet run` → `http://localhost:5198` / `https://localhost:7223`
+  - **Inventory.API:** `Inventory.API` klasöründe `dotnet run` → `http://localhost:5131` / `https://localhost:7067`
+  - **Basket.API:** `Basket.API` klasöründe `dotnet run` → `http://localhost:5204` / `https://localhost:7206`
 
-**Akış:** Önce **AuthApi**’de login olun → dönen **access_token**’ı alın → OrderApi / InventoryApi isteklerinde **Authorization: Bearer &lt;access_token&gt;** header’ı ile gönderin.
+**Not:** Gateway Swagger'da "Select a definition" menüsünde **Basket.API** görünmesi için Basket.API çalışıyor olmalı. Önce dört API'yi başlatın, sonra Gateway'i açın.
+
+**Akış:** Önce **Identity.API**’de login olun → dönen **access_token**’ı alın → Ordering.API / Inventory.API isteklerinde **Authorization: Bearer &lt;access_token&gt;** header’ı ile gönderin.
 
 ### 5.2 Token Gerektirmeyen Endpoint (test)
 
-- OrderApi: `GET https://localhost:5198/api/orders/public`
-- InventoryApi: `GET https://localhost:5131/api/inventory/public`
+- Ordering.API: `GET https://localhost:5198/api/orders/public`
+- Inventory.API: `GET https://localhost:5131/api/inventory/public`
 
 Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 
 ### 5.3 Token ve Rol Gerektiren Endpoint’ler
 
-**OrderApi (Sipariş):**
+**Ordering.API (Sipariş):**
 
 | Endpoint | İzin verilen roller | Açıklama |
 |----------|----------------------|----------|
@@ -223,7 +226,7 @@ Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 | `GET …/api/orders/my` | **Admin, User** | Giriş yapan kullanıcının siparişleri. |
 | `POST …/api/orders` | **Admin, User** | Yeni sipariş oluştur. |
 
-**InventoryApi (Stok):**
+**Inventory.API (Stok):**
 
 | Endpoint | İzin verilen roller | Açıklama |
 |----------|----------------------|----------|
@@ -231,10 +234,10 @@ Tarayıcı veya Postman ile doğrudan açılır; token gerekmez.
 | `GET …/api/inventory/{id}` | **Admin, User** | Tek ürün stok bilgisi. |
 | `PUT …/api/inventory/{id}` | **Admin** | Stok miktarı güncelle. |
 
-Bu isteklerde **Authorization** header’ı gerekir. Token’ı **AuthApi**’nin `/api/auth/login` endpoint’inden alın (örn. `admin`/`admin` veya `user`/`user`); aynı token’ı burada kullanın.
+Bu isteklerde **Authorization** header’ı gerekir. Token’ı **Identity.API**’nin `/api/auth/login` endpoint’inden alın (örn. `admin`/`admin` veya `user`/`user`); aynı token’ı burada kullanın.
 
 - **Header adı:** `Authorization`
-- **Değer:** `Bearer BURAYA_ACCESS_TOKEN_YAPIŞTIRIN` (access_token, AuthApi login yanıtındaki `access_token` alanı)
+- **Değer:** `Bearer BURAYA_ACCESS_TOKEN_YAPIŞTIRIN` (access_token, Identity.API login yanıtındaki `access_token` alanı)
 
 Postman’de: **Authorization** sekmesi → Type: **Bearer Token** → Token alanına **sadece** access_token’ı yapıştırın.
 
@@ -246,7 +249,7 @@ $headers = @{ Authorization = "Bearer $token" }
 Invoke-RestMethod -Uri "https://localhost:5198/api/orders" -Headers $headers
 ```
 
-Aynı token ile hem OrderApi hem InventoryApi’e istek atabilirsiniz; ortak giriş bu şekilde çalışır.
+Aynı token ile hem Ordering.API hem Inventory.API’e istek atabilirsiniz; ortak giriş bu şekilde çalışır.
 
 ---
 
@@ -257,10 +260,10 @@ Aynı token ile hem OrderApi hem InventoryApi’e istek atabilirsiniz; ortak gir
 | 1 | `docker compose up -d` ile KeyCloak’ı ayağa kaldırdık. |
 | 2 | KeyCloak’ta `KeyCloakApp` realm’i ve `backend-api` client’ı oluşturduk. |
 | 3 | Client’a audience mapper ekleyip `audience = backend-api` yaptık. |
-| 4 | **AuthApi** ile login olup token aldık (veya doğrudan Keycloak token endpoint’i kullandık). |
-| 5 | Dönen JWT’yi `Authorization: Bearer <token>` ile OrderApi ve InventoryApi’e gönderdik. |
+| 4 | **Identity.API** ile login olup token aldık (veya doğrudan Keycloak token endpoint’i kullandık). |
+| 5 | Dönen JWT’yi `Authorization: Bearer <token>` ile Ordering.API ve Inventory.API’e gönderdik. |
 
-**AuthApi** tüm girişleri toplar; Keycloak’tan alınan access_token OrderApi ve InventoryApi’te aynı şekilde kullanılır. Her iki API de aynı **Authority** ve **Audience** ile JWT doğruladığı için tek token yeterli.
+**Identity.API** tüm girişleri toplar; Keycloak’tan alınan access_token Ordering.API ve Inventory.API’te aynı şekilde kullanılır. Her iki API de aynı **Authority** ve **Audience** ile JWT doğruladığı için tek token yeterli.
 
 ---
 

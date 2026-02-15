@@ -10,6 +10,12 @@
     </button>
     <nav class="nav" [class.nav--open]="menuOpen()" aria-label="Ana menü">
       <a routerLink="/urunler" routerLinkActive="active" (click)="closeMenu()">Ürünler</a>
+      <a routerLink="/sepet" routerLinkActive="active" (click)="closeMenu()" class="nav-basket">
+        Sepet
+        @if (basketCount() > 0) {
+          <span class="basket-count" aria-label="{{ basketCount() }} ürün">{{ basketCount() }}</span>
+        }
+      </a>
       @if (auth.isAuthenticated()) {
         <a routerLink="/siparislerim" routerLinkActive="active" (click)="closeMenu()">Siparişlerim</a>
       }

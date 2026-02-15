@@ -7,10 +7,12 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { InventoryService } from '../../core/api/inventory.service';
 import { OrderService } from '../../core/api/order.service';
 import { AuthService } from '../../core/auth/auth.service';
 import type { InventoryPublicItem } from '../../core/api/api-types';
+import { BasketActions } from '../../features/basket/state/basket.actions';
 
 @Component({
   selector: 'app-product-detail-page',
@@ -26,6 +28,7 @@ export class ProductDetailPageComponent {
   private readonly orderService = inject(OrderService);
   protected readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly store = inject(Store);
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -56,6 +59,24 @@ export class ProductDetailPageComponent {
 
   protected imageUrl(): string {
     return this.inventory.getImageUrl(this.id());
+  }
+
+  protected addToBasket(): void {
+    const product = this.item();
+    if (!product) return;
+    const qty = this.form.getRawValue().quantity;
+    this.store.dispatch(
+      BasketActions.addToBasket({
+        request: {
+          productId: product.productId,
+          productName: product.productName,
+          inventoryItemId: product.id,
+          quantity: qty,
+          unitPrice: product.unitPrice ?? product.priceAfterDiscount ?? undefined,
+          currency: product.currency ?? undefined,
+        },
+      })
+    );
   }
 
   protected onSubmit(): void {

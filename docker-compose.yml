@@ -26,7 +26,7 @@ services:
       retries: 10
       start_period: 45s
 
-  # InventoryApi — PostgreSQL Alpine (küçük imaj)
+  # Inventory.API — PostgreSQL Alpine (küçük imaj)
   postgres:
     image: postgres:17-alpine
     container_name: keycloakapp_postgres
@@ -94,7 +94,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # OrderApi — Azure SQL Edge (MSSQL'den çok daha küçük, T-SQL uyumlu, aynı port/bağlantı)
+  # Ordering.API — Azure SQL Edge (MSSQL'den çok daha küçük, T-SQL uyumlu, aynı port/bağlantı)
   mssql:
     image: mcr.microsoft.com/azure-sql-edge:latest
     container_name: keycloakapp_mssql
