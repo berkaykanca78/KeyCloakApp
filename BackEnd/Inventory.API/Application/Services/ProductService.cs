@@ -1,69 +1,30 @@
+using MediatR;
+using Inventory.API.Application.Commands;
 using Inventory.API.Application.DTOs;
 using Inventory.API.Application.Ports;
-using Inventory.API.Application.UseCases;
+using Inventory.API.Application.Queries;
 using Inventory.API.Domain.Aggregates;
-using Inventory.API.Domain.Repositories;
 
 namespace Inventory.API.Application.Services;
 
 /// <summary>
-/// Primary adapter: Ürün port implementasyonu. Use case ve repository (outbound port) üzerinden yönlendirir.
+/// Primary adapter: Ürün port implementasyonu. MediatR (CQRS) üzerinden handler'lara yönlendirir; handler'lar repository kullanır.
 /// </summary>
 public class ProductService : IProductService
 {
-    private readonly IProductRepository _productRepository;
-    private readonly IProductDiscountRepository _productDiscountRepository;
-    private readonly CreateProductWithWarehousesUseCase _createProductWithWarehousesUseCase;
+    private readonly IMediator _mediator;
 
-    public ProductService(
-        IProductRepository productRepository,
-        IProductDiscountRepository productDiscountRepository,
-        CreateProductWithWarehousesUseCase createProductWithWarehousesUseCase)
+    public ProductService(IMediator mediator)
     {
-        _productRepository = productRepository;
-        _productDiscountRepository = productDiscountRepository;
-        _createProductWithWarehousesUseCase = createProductWithWarehousesUseCase;
+        _mediator = mediator;
     }
 
     public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken cancellationToken = default)
-        => (IEnumerable<Product>)await _productRepository.GetAllAsync(cancellationToken);
+        => (await _mediator.Send(new GetProductsQuery(), cancellationToken)).AsEnumerable();
 
     public async Task<(Product? Product, string? Error)> CreateAsync(CreateProductRequest request, CancellationToken cancellationToken = default)
-    {
-        if (request.WarehouseIds == null || request.WarehouseIds.Count == 0)
-            return (null, "En az bir depo seçmelisiniz. Deposu olmayan ürün eklenemez.");
-
-        return await _createProductWithWarehousesUseCase.ExecuteAsync(
-            request.Name,
-            request.UnitPrice,
-            request.Currency ?? "TRY",
-            request.ImageKey,
-            request.WarehouseIds,
-            request.InitialQuantity,
-            cancellationToken);
-    }
+        => await _mediator.Send(new CreateProductCommand(request), cancellationToken);
 
     public async Task<(ProductDiscount? Discount, string? Error)> CreateDiscountAsync(CreateProductDiscountRequest request, CancellationToken cancellationToken = default)
-    {
-        var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
-        if (product == null)
-            return (null, "Ürün bulunamadı.");
-
-        try
-        {
-            var discount = ProductDiscount.Create(
-                request.ProductId,
-                request.DiscountPercent,
-                request.StartAt,
-                request.EndAt,
-                request.Name);
-            _productDiscountRepository.Add(discount);
-            await _productDiscountRepository.SaveChangesAsync(cancellationToken);
-            return (discount, null);
-        }
-        catch (ArgumentException ex)
-        {
-            return (null, ex.Message);
-        }
-    }
+        => await _mediator.Send(new CreateProductDiscountCommand(request), cancellationToken);
 }
