@@ -1,3 +1,5 @@
+using Inventory.API.Domain.ValueObjects;
+
 namespace Inventory.API.Domain.Aggregates;
 
 /// <summary>
@@ -8,7 +10,7 @@ public class ProductDiscount
     public Guid Id { get; private set; }
     public Guid ProductId { get; private set; }
     /// <summary>İndirim yüzdesi (0-100).</summary>
-    public decimal DiscountPercent { get; private set; }
+    public DiscountPercent DiscountPercent { get; private set; }
     /// <summary>İndirim adı (örn. "Yaz İndirimi").</summary>
     public string? Name { get; private set; }
     public DateTime StartAt { get; private set; }
@@ -20,15 +22,14 @@ public class ProductDiscount
 
     public static ProductDiscount Create(Guid productId, decimal discountPercent, DateTime startAt, DateTime endAt, string? name = null)
     {
-        if (discountPercent < 0 || discountPercent > 100)
-            throw new ArgumentException("İndirim yüzdesi 0-100 arasında olmalıdır.", nameof(discountPercent));
+        var percent = new DiscountPercent(discountPercent);
         if (endAt < startAt)
             throw new ArgumentException("Bitiş tarihi başlangıçtan önce olamaz.", nameof(endAt));
         return new ProductDiscount
         {
             Id = Guid.NewGuid(),
             ProductId = productId,
-            DiscountPercent = discountPercent,
+            DiscountPercent = percent,
             Name = name?.Trim(),
             StartAt = startAt.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(startAt, DateTimeKind.Utc) : startAt.ToUniversalTime(),
             EndAt = endAt.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(endAt, DateTimeKind.Utc) : endAt.ToUniversalTime()

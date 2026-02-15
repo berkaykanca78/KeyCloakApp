@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Inventory.API.Application.DTOs;
 using Inventory.API.Application.Ports;
+using Inventory.API.Application.Results;
 using Inventory.API.Domain.Aggregates;
 using Shared.Api;
 
@@ -41,25 +42,18 @@ public class WarehousesController : ControllerBase
     [RequestSizeLimit(5 * 1024 * 1024)]
     public async Task<ActionResult<ResultDto<object>>> UploadImage(Guid id, CancellationToken cancellationToken = default)
     {
-        IFormFile? file = null;
-        if (Request.HasFormContentType && Request.Form.Files.Count > 0)
-            file = Request.Form.Files.GetFile("file") ?? Request.Form.Files[0];
-        if (file == null || file.Length == 0)
-            return BadRequest(ResultDto<object>.Failure("Dosya gelmedi. Form alan adı 'file' olmalı, Content-Type: multipart/form-data."));
-        var allowed = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
-        var contentType = file.ContentType ?? "application/octet-stream";
-        if (!allowed.Contains(contentType))
-            return BadRequest(ResultDto<object>.Failure($"Sadece resim dosyaları kabul edilir. Gelen: {contentType}"));
-
-        await using var stream = file.OpenReadStream();
-        var (success, imageKey, error) = await _warehouseService.UploadImageAsync(id, stream, contentType, file.FileName, cancellationToken);
-        if (!success)
-        {
-            if (error?.Contains("bulunamadı") == true)
-                return NotFound(ResultDto<object>.Failure(error));
-            return StatusCode(500, ResultDto<object>.Failure(error ?? "Yükleme hatası."));
-        }
-        return Ok(ResultDto<object>.Success(new { imageKey }, "Depo resmi yüklendi."));
+        var file = Request.HasFormContentType && Request.Form.Files.Count > 0
+            ? Request.Form.Files.GetFile("file") ?? Request.Form.Files[0]
+            : null;
+        var result = await _warehouseService.UploadImageFromFormAsync(id, file, cancellationToken);
+        if (!result.Success)
+            return result.ErrorKind switch
+            {
+                UploadImageErrorKind.NotFound => NotFound(ResultDto<object>.Failure(result.Error ?? "Bulunamadı.")),
+                UploadImageErrorKind.BadRequest => BadRequest(ResultDto<object>.Failure(result.Error ?? "Geçersiz istek.")),
+                _ => StatusCode(500, ResultDto<object>.Failure(result.Error ?? "Yükleme hatası."))
+            };
+        return Ok(ResultDto<object>.Success(new { result.ImageKey }, "Depo resmi yüklendi."));
     }
 
     [HttpGet("{id:guid}/image")]

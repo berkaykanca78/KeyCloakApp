@@ -16,7 +16,7 @@ public class ProductDiscountRepository : IProductDiscountRepository
         if (t.Kind != DateTimeKind.Utc) t = t.ToUniversalTime();
         return await _db.ProductDiscounts
             .Where(d => d.ProductId == productId && d.StartAt <= t && d.EndAt >= t)
-            .OrderByDescending(d => d.DiscountPercent)
+            .OrderByDescending(d => d.DiscountPercent.Value)
             .FirstOrDefaultAsync(cancellationToken);
     }
 

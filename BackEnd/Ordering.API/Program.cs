@@ -12,11 +12,17 @@ using Ordering.API.Domain.Aggregates;
 using Ordering.API.Domain.Repositories;
 using Ordering.API.Infrastructure.Outbox;
 using Ordering.API.Infrastructure.Persistence;
+using Ordering.API.Infrastructure.Serialization;
 using Ordering.API.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new CustomerNameJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new OrderQuantityJsonConverter());
+    });
 var inventoryBaseUrl = builder.Configuration["Inventory.API:BaseUrl"] ?? "http://localhost:5131";
 builder.Services.AddHttpClient<IInventoryAvailabilityClient, InventoryAvailabilityClient>(c => c.BaseAddress = new Uri(inventoryBaseUrl.TrimEnd('/') + "/"));
 builder.Services.AddCors(options =>

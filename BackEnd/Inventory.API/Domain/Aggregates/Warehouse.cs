@@ -8,7 +8,7 @@ namespace Inventory.API.Domain.Aggregates;
 public class Warehouse
 {
     public Guid Id { get; private set; }
-    public string Name { get; private set; } = string.Empty;
+    public Location Name { get; private set; }
     /// <summary>Plaka veya kod (opsiyonel).</summary>
     public string? Code { get; private set; }
     /// <summary>MinIO/S3'te depo resmi object key.</summary>
@@ -22,7 +22,7 @@ public class Warehouse
         return new Warehouse
         {
             Id = Guid.NewGuid(),
-            Name = location.Value,
+            Name = location,
             Code = string.IsNullOrWhiteSpace(code) ? null : code.Trim(),
             ImageKey = imageKey
         };
@@ -32,7 +32,6 @@ public class Warehouse
 
     public void SetName(string name)
     {
-        var location = new Location(name);
-        Name = location.Value;
+        Name = new Location(name);
     }
 }

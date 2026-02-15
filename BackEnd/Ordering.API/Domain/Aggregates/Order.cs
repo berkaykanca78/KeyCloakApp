@@ -10,7 +10,7 @@ public class Order
     public Guid Id { get; private set; }
     public Guid CustomerId { get; private set; }
     public Guid ProductId { get; private set; }
-    public int Quantity { get; private set; }
+    public OrderQuantity Quantity { get; private set; }
     /// <summary>Sipariş anındaki birim fiyat (indirimli veya liste fiyatı).</summary>
     public decimal UnitPrice { get; private set; }
     public string CreatedBy { get; private set; } = string.Empty;
@@ -31,7 +31,7 @@ public class Order
             Id = Guid.NewGuid(),
             CustomerId = customerId,
             ProductId = productId,
-            Quantity = quantity.Value,
+            Quantity = quantity,
             UnitPrice = unitPrice,
             CreatedBy = createdBy,
             CreatedAt = DateTime.UtcNow

@@ -31,12 +31,10 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ResultDto<Product>>> Create([FromBody] CreateProductRequest request, CancellationToken cancellationToken)
     {
         var (product, error) = await _productService.CreateAsync(request, cancellationToken);
-
         if (error != null)
             return BadRequest(ResultDto<Product>.Failure(error));
         if (product == null)
             return BadRequest(ResultDto<Product>.Failure("Ürün eklenemedi."));
-
         return Ok(ResultDto<Product>.Success(product, "Ürün eklendi."));
     }
 
@@ -45,13 +43,9 @@ public class ProductsController : ControllerBase
     [HttpPost("discounts")]
     public async Task<ActionResult<ResultDto<ProductDiscount>>> CreateDiscount([FromBody] CreateProductDiscountRequest request, CancellationToken cancellationToken = default)
     {
-        var (discount, error) = await _productService.CreateDiscountAsync(request, cancellationToken);
+        var (discount, error, isNotFound) = await _productService.CreateDiscountAsync(request, cancellationToken);
         if (error != null)
-        {
-            if (error.Contains("bulunamadı"))
-                return NotFound(ResultDto<ProductDiscount>.Failure(error));
-            return BadRequest(ResultDto<ProductDiscount>.Failure(error));
-        }
+            return isNotFound ? NotFound(ResultDto<ProductDiscount>.Failure(error)) : BadRequest(ResultDto<ProductDiscount>.Failure(error));
         if (discount == null)
             return BadRequest(ResultDto<ProductDiscount>.Failure("İndirim eklenemedi."));
         return Ok(ResultDto<ProductDiscount>.Success(discount, "İndirim eklendi."));

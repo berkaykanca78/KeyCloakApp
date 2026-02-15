@@ -21,10 +21,10 @@ public class CheckAvailabilityQueryHandler : IRequestHandler<CheckAvailabilityQu
             return CheckAvailabilityResult.InvalidInput("Miktar 0'dan büyük olmalıdır.");
 
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
-        var productName = product?.Name ?? request.ProductId.ToString();
+        var productName = product != null ? product.Name.Value : request.ProductId.ToString();
 
         var items = await _repository.GetByProductIdAsync(request.ProductId, cancellationToken);
-        var totalQty = items.Sum(i => i.Quantity);
+        var totalQty = items.Sum(i => i.Quantity.Value);
 
         if (items.Count == 0)
             return CheckAvailabilityResult.ProductNotFound(request.ProductId, productName);

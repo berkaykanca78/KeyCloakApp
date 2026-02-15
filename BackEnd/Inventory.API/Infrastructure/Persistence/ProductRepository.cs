@@ -14,7 +14,7 @@ public class ProductRepository : IProductRepository
         => _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken cancellationToken = default)
-        => await _db.Products.OrderBy(p => p.Name).ToListAsync(cancellationToken);
+        => await _db.Products.OrderBy(p => p.Name.Value).ToListAsync(cancellationToken);
 
     public void Add(Product product) => _db.Products.Add(product);
 

@@ -1,3 +1,5 @@
+using Basket.API.Domain.ValueObjects;
+
 namespace Basket.API.Domain.Aggregates;
 
 /// <summary>
@@ -6,8 +8,8 @@ namespace Basket.API.Domain.Aggregates;
 public class CustomerBasket
 {
     public string BuyerId { get; private set; } = string.Empty;
-    private readonly List<ValueObjects.BasketItem> _items = new();
-    public IReadOnlyList<ValueObjects.BasketItem> Items => _items.AsReadOnly();
+    private readonly List<BasketItem> _items = new();
+    public IReadOnlyList<BasketItem> Items => _items.AsReadOnly();
 
     private CustomerBasket() { }
 
@@ -25,7 +27,7 @@ public class CustomerBasket
         if (existing != null)
             existing.AddQuantity(quantity);
         else
-            _items.Add(ValueObjects.BasketItem.Create(productId, productName, quantity, inventoryItemId, unitPrice, currency));
+            _items.Add(BasketItem.Create(productId, productName, quantity, inventoryItemId, unitPrice, currency));
     }
 
     public bool UpdateQuantity(string productId, int quantity)

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Ordering.API.Domain.Aggregates;
+using Ordering.API.Domain.ValueObjects;
 
 namespace Ordering.API.Infrastructure.Persistence;
 
@@ -26,8 +27,12 @@ public class OrderDbContext : DbContext
             e.ToTable("Customers");
             e.HasKey(x => x.Id);
             e.Property(x => x.KeycloakSub).HasMaxLength(200).IsRequired();
-            e.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
-            e.Property(x => x.LastName).HasMaxLength(100).IsRequired();
+            e.Property(x => x.FirstName)
+                .HasConversion(v => v.Value, v => new CustomerName(v))
+                .HasMaxLength(100).IsRequired();
+            e.Property(x => x.LastName)
+                .HasConversion(v => v.Value, v => new CustomerName(v))
+                .HasMaxLength(100).IsRequired();
             e.Property(x => x.Address).HasMaxLength(500);
             e.Property(x => x.CardLast4).HasMaxLength(4);
             e.HasIndex(x => x.KeycloakSub).IsUnique();
@@ -37,6 +42,8 @@ public class OrderDbContext : DbContext
         {
             e.ToTable("Orders");
             e.HasKey(x => x.Id);
+            e.Property(x => x.Quantity)
+                .HasConversion(v => v.Value, v => new OrderQuantity(v));
             e.Property(x => x.UnitPrice).HasPrecision(18, 2);
             e.Property(x => x.CreatedBy).HasMaxLength(100).IsRequired();
             e.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);

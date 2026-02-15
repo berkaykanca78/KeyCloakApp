@@ -18,7 +18,7 @@ public class InventoryRepository : IInventoryRepository
     {
         var list = await _db.InventoryItems.Include(i => i.Product).Include(i => i.Warehouse)
             .Where(i => i.ProductId == productId)
-            .OrderByDescending(i => i.Quantity)
+            .OrderByDescending(i => i.Quantity.Value)
             .ToListAsync(cancellationToken);
         return list;
     }
@@ -26,7 +26,7 @@ public class InventoryRepository : IInventoryRepository
     public async Task<IReadOnlyList<InventoryItem>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var list = await _db.InventoryItems.Include(i => i.Product).Include(i => i.Warehouse)
-            .OrderBy(i => i.Product!.Name).ThenBy(i => i.Warehouse!.Name)
+            .OrderBy(i => i.Product!.Name.Value).ThenBy(i => i.Warehouse!.Name.Value)
             .ToListAsync(cancellationToken);
         return list;
     }

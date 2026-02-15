@@ -42,7 +42,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Cre
             CorrelationId = correlationId,
             OrderId = order.Id,
             ProductId = order.ProductId,
-            Quantity = order.Quantity
+            Quantity = order.Quantity.Value
         };
 
         _dbContext.Orders.Add(order);

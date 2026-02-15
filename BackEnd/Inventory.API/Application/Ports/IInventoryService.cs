@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Inventory.API.Application.Queries;
 using Inventory.API.Application.Results;
 using Inventory.API.Domain.Aggregates;
@@ -16,6 +17,8 @@ public interface IInventoryService
     Task<InventoryItem?> UpdateQuantityAsync(Guid id, int quantity, CancellationToken cancellationToken = default);
     Task<InventoryItem?> CreateAsync(Guid productId, Guid warehouseId, int quantity, CancellationToken cancellationToken = default);
     Task<(bool Success, string? ImageKey, string? Error)> UploadImageAsync(Guid inventoryItemId, Stream fileStream, string contentType, string? fileName, CancellationToken cancellationToken = default);
+    /// <summary>Form dosyasını doğrular ve stok kalemi resmini yükler.</summary>
+    Task<UploadImageResult> UploadImageFromFormAsync(Guid inventoryItemId, IFormFile? file, CancellationToken cancellationToken = default);
     Task<(string? Url, string? Error)> GetImageUrlAsync(Guid inventoryItemId, int expirySeconds = 3600, CancellationToken cancellationToken = default);
     Task<(Stream? Stream, string? ContentType)> GetImageStreamAsync(Guid inventoryItemId, CancellationToken cancellationToken = default);
 }

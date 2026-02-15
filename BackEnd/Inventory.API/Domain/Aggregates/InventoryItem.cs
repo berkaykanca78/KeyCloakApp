@@ -10,7 +10,7 @@ public class InventoryItem
     public Guid Id { get; private set; }
     public Guid ProductId { get; private set; }
     public Guid WarehouseId { get; private set; }
-    public int Quantity { get; private set; }
+    public StockQuantity Quantity { get; private set; }
 
     public Product? Product { get; private set; }
     public Warehouse? Warehouse { get; private set; }
@@ -24,17 +24,18 @@ public class InventoryItem
             Id = Guid.NewGuid(),
             ProductId = productId,
             WarehouseId = warehouseId,
-            Quantity = quantity.Value
+            Quantity = quantity
         };
     }
 
     public int ReduceStock(int amount)
     {
         if (amount <= 0) return 0;
-        var deducted = Math.Min(Quantity, amount);
-        Quantity = Math.Max(0, Quantity - amount);
+        var deducted = Math.Min(Quantity.Value, amount);
+        var newQuantity = Math.Max(0, Quantity.Value - amount);
+        SetQuantity(new StockQuantity(newQuantity));
         return deducted;
     }
 
-    public void SetQuantity(StockQuantity quantity) => Quantity = quantity.Value;
+    public void SetQuantity(StockQuantity quantity) => Quantity = quantity;
 }

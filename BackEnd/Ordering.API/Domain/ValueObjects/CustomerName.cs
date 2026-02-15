@@ -7,13 +7,11 @@ public readonly record struct CustomerName
 {
     public string Value { get; }
 
-    public CustomerName(string value)
+    public CustomerName(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Müşteri adı boş olamaz.", nameof(value));
-        if (value.Length > 200)
+        Value = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        if (Value.Length > 200)
             throw new ArgumentException("Müşteri adı en fazla 200 karakter olabilir.", nameof(value));
-        Value = value.Trim();
     }
 
     public override string ToString() => Value;

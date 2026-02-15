@@ -14,7 +14,7 @@ public class WarehouseRepository : IWarehouseRepository
         => _db.Warehouses.FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Warehouse>> GetAllAsync(CancellationToken cancellationToken = default)
-        => await _db.Warehouses.OrderBy(w => w.Name).ToListAsync(cancellationToken);
+        => await _db.Warehouses.OrderBy(w => w.Name.Value).ToListAsync(cancellationToken);
 
     public void Add(Warehouse warehouse) => _db.Warehouses.Add(warehouse);
 

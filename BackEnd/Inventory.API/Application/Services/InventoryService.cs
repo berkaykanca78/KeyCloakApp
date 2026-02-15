@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using MediatR;
 using Inventory.API.Application.Commands;
 using Inventory.API.Application.Contracts;
@@ -48,6 +49,27 @@ public class InventoryService : IInventoryService
 
     public Task<InventoryItem?> CreateAsync(Guid productId, Guid warehouseId, int quantity, CancellationToken cancellationToken = default)
         => _mediator.Send(new CreateInventoryCommand(productId, warehouseId, quantity), cancellationToken);
+
+    private static readonly string[] AllowedImageContentTypes = { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+
+    public async Task<UploadImageResult> UploadImageFromFormAsync(Guid inventoryItemId, IFormFile? file, CancellationToken cancellationToken = default)
+    {
+        if (file == null || file.Length == 0)
+            return UploadImageResult.BadRequest("Dosya gelmedi. Form alan adı 'file' olmalı, Content-Type: multipart/form-data.");
+        var contentType = file.ContentType ?? "application/octet-stream";
+        if (!AllowedImageContentTypes.Contains(contentType))
+            return UploadImageResult.BadRequest($"Sadece resim dosyaları kabul edilir. Gelen: {contentType}");
+
+        await using var stream = file.OpenReadStream();
+        var (success, imageKey, error) = await UploadImageAsync(inventoryItemId, stream, contentType, file.FileName, cancellationToken);
+        if (!success)
+        {
+            if (error?.Contains("bulunamadı") == true)
+                return UploadImageResult.NotFound(error);
+            return UploadImageResult.ServerError(error ?? "Yükleme hatası.");
+        }
+        return UploadImageResult.Ok(imageKey!);
+    }
 
     public async Task<(bool Success, string? ImageKey, string? Error)> UploadImageAsync(Guid inventoryItemId, Stream fileStream, string contentType, string? fileName, CancellationToken cancellationToken = default)
     {

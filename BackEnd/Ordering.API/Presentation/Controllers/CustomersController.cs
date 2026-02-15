@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ordering.API.Application.DTOs;
@@ -31,13 +30,12 @@ public class CustomersController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<ResultDto<Customer>>> GetMe(CancellationToken cancellationToken = default)
     {
-        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(sub))
+        var result = await _customerService.GetMeAsync(User, cancellationToken);
+        if (result.Unauthorized)
             return NotFound(ResultDto<Customer>.Failure("Kullanıcı bilgisi bulunamadı."));
-        var customer = await _customerService.GetByKeycloakSubAsync(sub, cancellationToken);
-        if (customer == null)
-            return NotFound(ResultDto<Customer>.Failure("Müşteri kaydı bulunamadı. Önce kayıt olun."));
-        return Ok(ResultDto<Customer>.Success(customer));
+        if (result.NotFoundMessage != null)
+            return NotFound(ResultDto<Customer>.Failure(result.NotFoundMessage));
+        return Ok(ResultDto<Customer>.Success(result.Customer!));
     }
 
     /// <summary>Giriş yapan kullanıcı için müşteri kaydı oluşturur (sub claim ile). Kayıt yoksa token bilgileriyle oluşturulur.</summary>
@@ -45,29 +43,11 @@ public class CustomersController : ControllerBase
     [HttpPost("me")]
     public async Task<ActionResult<ResultDto<Customer>>> CreateMe([FromBody] CreateCustomerMeRequest? request, CancellationToken cancellationToken = default)
     {
-        var sub = User.FindFirst("sub")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(sub))
+        var result = await _customerService.CreateMeAsync(User, request, cancellationToken);
+        if (result.Unauthorized)
             return Unauthorized(ResultDto<Customer>.Failure("Kullanıcı bilgisi bulunamadı."));
-
-        var firstName = request?.FirstName?.Trim();
-        var lastName = request?.LastName?.Trim();
-        if (string.IsNullOrEmpty(firstName))
-            firstName = User.FindFirst("given_name")?.Value ?? User.FindFirst(ClaimTypes.GivenName)?.Value ?? "";
-        if (string.IsNullOrEmpty(lastName))
-            lastName = User.FindFirst("family_name")?.Value ?? User.FindFirst(ClaimTypes.Surname)?.Value ?? "";
-        if (string.IsNullOrEmpty(firstName) && string.IsNullOrEmpty(lastName))
-        {
-            var name = User.FindFirst("name")?.Value ?? User.Identity?.Name ?? "";
-            var parts = name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-            firstName = parts.Length > 0 ? parts[0] : "Kullanıcı";
-            lastName = parts.Length > 1 ? parts[1] : "";
-        }
-        if (string.IsNullOrEmpty(firstName))
-            firstName = "Kullanıcı";
-
-        var (customer, alreadyExisted) = await _customerService.CreateMeAsync(sub, firstName, lastName, request?.Address, request?.CityId, request?.DistrictId, request?.CardLast4, cancellationToken);
-        if (customer == null)
-            return StatusCode(500, ResultDto<Customer>.Failure("Müşteri kaydı oluşturulamadı."));
-        return Ok(ResultDto<Customer>.Success(customer, alreadyExisted ? "Müşteri zaten mevcut." : "Müşteri kaydı oluşturuldu."));
+        if (result.ServerErrorMessage != null)
+            return StatusCode(500, ResultDto<Customer>.Failure(result.ServerErrorMessage));
+        return Ok(ResultDto<Customer>.Success(result.Customer!, result.AlreadyExisted ? "Müşteri zaten mevcut." : "Müşteri kaydı oluşturuldu."));
     }
 }

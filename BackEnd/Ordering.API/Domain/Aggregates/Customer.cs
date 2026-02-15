@@ -1,3 +1,5 @@
+using Ordering.API.Domain.ValueObjects;
+
 namespace Ordering.API.Domain.Aggregates;
 
 /// <summary>
@@ -7,8 +9,8 @@ public class Customer
 {
     public Guid Id { get; private set; }
     public string KeycloakSub { get; private set; } = string.Empty;
-    public string FirstName { get; private set; } = string.Empty;
-    public string LastName { get; private set; } = string.Empty;
+    public CustomerName FirstName { get; private set; }
+    public CustomerName LastName { get; private set; }
     public string? Address { get; private set; }
     public int? CityId { get; private set; }
     public int? DistrictId { get; private set; }
@@ -24,8 +26,8 @@ public class Customer
         {
             Id = Guid.NewGuid(),
             KeycloakSub = keycloakSub.Trim(),
-            FirstName = (firstName ?? "").Trim(),
-            LastName = (lastName ?? "").Trim(),
+            FirstName = new CustomerName(firstName),
+            LastName = new CustomerName(lastName),
             Address = string.IsNullOrWhiteSpace(address) ? null : address.Trim(),
             CityId = cityId,
             DistrictId = districtId,
@@ -34,5 +36,5 @@ public class Customer
         };
     }
 
-    public string FullName => $"{FirstName} {LastName}".Trim();
+    public string FullName => $"{FirstName.Value} {LastName.Value}".Trim();
 }

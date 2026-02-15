@@ -19,13 +19,13 @@ public class ReduceStockUseCase
     public async Task<ReduceStockResult> ExecuteAsync(Guid productId, int quantity, CancellationToken cancellationToken = default)
     {
         var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
-        var productName = product?.Name ?? productId.ToString();
+        var productName = product != null ? product.Name.Value : productId.ToString();
 
         var items = await _repository.GetByProductIdAsync(productId, cancellationToken);
         if (items.Count == 0)
             return ReduceStockResult.ProductNotFound(productId, productName);
 
-        var total = items.Sum(i => i.Quantity);
+        var total = items.Sum(i => i.Quantity.Value);
         if (total < quantity)
             return ReduceStockResult.InsufficientStock(productId, productName, quantity, total);
 
@@ -33,7 +33,7 @@ public class ReduceStockUseCase
         foreach (var item in items)
         {
             if (remaining <= 0) break;
-            var deduct = Math.Min(item.Quantity, remaining);
+            var deduct = Math.Min(item.Quantity.Value, remaining);
             item.ReduceStock(deduct);
             remaining -= deduct;
         }

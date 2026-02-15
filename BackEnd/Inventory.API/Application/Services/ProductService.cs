@@ -25,6 +25,9 @@ public class ProductService : IProductService
     public async Task<(Product? Product, string? Error)> CreateAsync(CreateProductRequest request, CancellationToken cancellationToken = default)
         => await _mediator.Send(new CreateProductCommand(request), cancellationToken);
 
-    public async Task<(ProductDiscount? Discount, string? Error)> CreateDiscountAsync(CreateProductDiscountRequest request, CancellationToken cancellationToken = default)
-        => await _mediator.Send(new CreateProductDiscountCommand(request), cancellationToken);
+    public async Task<(ProductDiscount? Discount, string? Error, bool IsNotFound)> CreateDiscountAsync(CreateProductDiscountRequest request, CancellationToken cancellationToken = default)
+    {
+        var (discount, error) = await _mediator.Send(new CreateProductDiscountCommand(request), cancellationToken);
+        return (discount, error, error?.Contains("bulunamadı") == true);
+    }
 }

@@ -22,10 +22,10 @@ public class CheckAvailabilityUseCase
             return CheckAvailabilityResult.InvalidInput("Miktar 0'dan büyük olmalıdır.");
 
         var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
-        var productName = product?.Name ?? productId.ToString();
+        var productName = product != null ? product.Name.Value : productId.ToString();
 
         var items = await _repository.GetByProductIdAsync(productId, cancellationToken);
-        var totalQty = items.Sum(i => i.Quantity);
+        var totalQty = items.Sum(i => i.Quantity.Value);
 
         if (items.Count == 0)
             return CheckAvailabilityResult.ProductNotFound(productId, productName);

@@ -8,7 +8,7 @@ namespace Inventory.API.Domain.Aggregates;
 public class Product
 {
     public Guid Id { get; private set; }
-    public string Name { get; private set; } = string.Empty;
+    public ProductName Name { get; private set; }
     /// <summary>S3/MinIO'da saklanan ürün resmi object key.</summary>
     public string? ImageKey { get; private set; }
     /// <summary>Birim fiyat (liste fiyatı).</summary>
@@ -27,7 +27,7 @@ public class Product
         return new Product
         {
             Id = Guid.NewGuid(),
-            Name = productName.Value,
+            Name = productName,
             ImageKey = imageKey,
             UnitPrice = unitPrice,
             Currency = c.Length >= 3 ? c[..3] : c
@@ -37,8 +37,7 @@ public class Product
     public void SetImageKey(string? imageKey) => ImageKey = imageKey;
     public void SetName(string name)
     {
-        var productName = new ProductName(name);
-        Name = productName.Value;
+        Name = new ProductName(name);
     }
     public void SetUnitPrice(decimal unitPrice)
     {
